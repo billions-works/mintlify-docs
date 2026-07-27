@@ -6,6 +6,32 @@ icon: "shield-halved"
 
 Use callbacks to wake your integration, not as proof of payment.
 
+## Callback payload
+
+Billions sends an HTTP `POST` request with a JSON body:
+
+```json
+{
+  "id": "invoice-id",
+  "status": "completed",
+  "paid_amount": "100.000000000000000000"
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Billions invoice ID. Use it to retrieve the invoice from the authenticated API. |
+| `status` | string | Invoice status at the time the callback was created. Treat it as untrusted until verified. |
+| `paid_amount` | string | Amount reported as paid. Compare it with the authenticated API response before fulfillment. |
+
+The request uses the `Content-Type: application/json` header.
+
+<Warning>
+  The callback payload is not proof of payment. An attacker can send a request
+  directly to a public callback endpoint. Retrieve the invoice using `id` and
+  trust only the authenticated API response.
+</Warning>
+
 ## Safe callback algorithm
 
 <Steps>
@@ -49,11 +75,10 @@ Use callbacks to wake your integration, not as proof of payment.
 ## Response behavior
 
 Your endpoint should acknowledge a callback only after the event is stored or
-processed durably. If a temporary dependency fails, return the failure response
-expected by your callback retry policy.
+processed durably.
 
 <Note>
-  TODO: Document the official callback payload, delivery timeout, retry schedule,
-  expected HTTP success codes, signature mechanism if applicable, and source IP
-  policy if applicable.
+  TODO: Add the delivery timeout, retry schedule, expected HTTP success codes,
+  signature mechanism if applicable, and source IP policy after the callback
+  delivery implementation is finalized.
 </Note>
