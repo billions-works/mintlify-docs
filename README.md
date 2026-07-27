@@ -22,3 +22,9 @@ The documentation is then available at `http://localhost:3000`.
 Before publishing, replace every `TODO` callout with production-specific
 information.
 
+## Authoring conventions
+
+- Treat TypeScript as the primary SDK in shared guides and examples.
+- In prose, mention TypeScript before PHP.
+- In `CodeGroup` components, use this order: TypeScript, PHP, cURL.
+- Keep SDK-specific details on their respective SDK pages.
