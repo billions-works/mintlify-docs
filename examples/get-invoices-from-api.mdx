@@ -1,14 +1,16 @@
 ---
-title: "Recover an invoice"
-description: "Find invoices by your order reference after an uncertain create request."
+title: "Get invoices from the API"
+description: "Retrieve Billions invoices using your order reference."
 icon: "rotate"
 ---
 
-A request may time out after Billions has created the invoice but before your
-backend receives the response. Do not immediately create an unrelated invoice.
+Retrieve invoices from the Billions API using the `order_no` stored with your
+order. This is useful for displaying payment status, reconciling local records,
+or restoring an invoice after an uncertain create request.
 
-First, retry the same request with the same idempotency key. You can also look
-up invoices using the stable `order_no`.
+For example, a create request may time out after Billions has created the
+invoice but before your backend receives the response. Before creating another
+invoice, query the API using the stable `order_no`.
 
 <CodeGroup>
 
@@ -37,7 +39,7 @@ curl --request GET \
 
 </CodeGroup>
 
-## Recovery rules
+## Retrieval and recovery rules
 
 1. Retry the same logical create attempt with the same idempotency key.
 2. Query by `order_no` when reconciling your local order with Billions.
