@@ -31,6 +31,20 @@ $invoice = $api->createInvoice([
 ]);
 ```
 
+```bash cURL
+curl --request POST \
+  --url https://api.billions.works/public/v1/invoices/create \
+  --header "Content-Type: application/json" \
+  --header "x-api-key: $BILLIONS_API_KEY" \
+  --data '{
+    "currency": "USDT",
+    "amount": 100,
+    "order_no": "ORDER-1001",
+    "idempotencyKey": "ORDER-1001-attempt-1",
+    "callbackUrl": "https://example.com/webhooks/billions"
+  }'
+```
+
 </CodeGroup>
 
 Persist at least:
@@ -83,4 +97,3 @@ The invoice status can include:
 Callbacks and status checks can run more than once. Use a transaction or
 conditional update so inventory, emails, and fulfillment happen only on the
 first transition to paid.
-

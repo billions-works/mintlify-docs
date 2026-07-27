@@ -28,6 +28,13 @@ foreach ($invoices as $invoice) {
 }
 ```
 
+```bash cURL
+curl --request GET \
+  --url https://api.billions.works/public/v1/invoices/byOrder/ORDER-1001 \
+  --header "Content-Type: application/json" \
+  --header "x-api-key: $BILLIONS_API_KEY"
+```
+
 </CodeGroup>
 
 ## Recovery rules
@@ -36,4 +43,3 @@ foreach ($invoices as $invoice) {
 2. Query by `order_no` when reconciling your local order with Billions.
 3. Match the amount, currency, and intended attempt before redirecting.
 4. Create a new attempt only when the previous attempt is no longer usable.
-

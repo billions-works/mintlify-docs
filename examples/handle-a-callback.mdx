@@ -58,9 +58,18 @@ try {
 }
 ```
 
+```bash cURL
+curl --request GET \
+  --url "https://api.billions.works/public/v1/invoices/$BILLIONS_INVOICE_ID" \
+  --header "Content-Type: application/json" \
+  --header "x-api-key: $BILLIONS_API_KEY"
+```
+
 </CodeGroup>
 
 <Warning>
   Add callback schema validation, order matching, and transactional idempotency
-  before using these illustrative handlers in production.
+  before using these illustrative handlers in production. With cURL, your
+  backend must also require `completed` status and compare the API response with
+  the callback before marking the order as paid.
 </Warning>

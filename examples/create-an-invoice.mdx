@@ -48,6 +48,20 @@ echo $invoice['id'] . PHP_EOL;
 echo $invoice['invoice_url'] . PHP_EOL;
 ```
 
+```bash cURL
+curl --request POST \
+  --url https://api.billions.works/public/v1/invoices/create \
+  --header "Content-Type: application/json" \
+  --header "x-api-key: $BILLIONS_API_KEY" \
+  --data '{
+    "currency": "USDT",
+    "amount": 100,
+    "order_no": "ORDER-1001",
+    "idempotencyKey": "ORDER-1001-attempt-1",
+    "callbackUrl": "https://example.com/webhooks/billions"
+  }'
+```
+
 </CodeGroup>
 
 ## What to store
@@ -59,4 +73,3 @@ Also retain the order number, idempotency key, status, and expiration time.
 
 Redirect the customer to `invoice_url`, then implement
 [callback handling](/examples/handle-a-callback).
-
