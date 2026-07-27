@@ -3,6 +3,11 @@
   "theme": "mint",
   "name": "Billions",
   "description": "Integrate Billions payments into your application or online store.",
+  "logo": {
+    "light": "/logo/logo-black.svg",
+    "dark": "/logo/logo-white.svg",
+    "href": "https://billions.works"
+  },
   "colors": {
     "primary": "#635BFF",
     "light": "#7C75FF",
