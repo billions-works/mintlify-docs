@@ -41,9 +41,9 @@ Use callbacks to wake your integration, not as proof of payment.
 - Make duplicate delivery harmless.
 
 <Tip>
-  The PHP SDK includes `verifyInvoicePaid()`. It retrieves the invoice, requires
-  `completed` status, and compares callback status and paid amount with the API
-  result.
+  The TypeScript and PHP SDKs include `verifyInvoicePaid()`. It retrieves the
+  invoice, requires `completed` status, and compares callback status and paid
+  amount with the API result.
 </Tip>
 
 ## Response behavior
@@ -57,4 +57,3 @@ expected by your callback retry policy.
   expected HTTP success codes, signature mechanism if applicable, and source IP
   policy if applicable.
 </Note>
-

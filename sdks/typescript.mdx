@@ -41,9 +41,40 @@ const version = await api.getVersion();
 const currencies = await api.getCurrencies();
 const invoice = await api.getInvoice('invoice-id');
 const invoices = await api.getInvoicesByOrder('ORDER-1001');
+const verifiedInvoice = await api.verifyInvoicePaid(callbackData);
 ```
 
 Invoice objects include `invoice_url`, `order_no`, `expires_at`, and `status`.
+
+## Verify a payment callback
+
+`verifyInvoicePaid()` retrieves the invoice from the authenticated API, requires
+the invoice status to be `completed`, and compares the callback status and paid
+amount with the API result.
+
+```ts
+import {
+  CallbackVerificationError,
+  InvoiceNotPaidError,
+} from '@billions-works/sdk-ts';
+
+try {
+  const invoice = await api.verifyInvoicePaid({
+    id: callback.id,
+    status: callback.status,
+    paid_amount: callback.paid_amount,
+  });
+
+  // Transition invoice.order_no to paid exactly once.
+} catch (error) {
+  if (
+    error instanceof InvoiceNotPaidError ||
+    error instanceof CallbackVerificationError
+  ) {
+    // Do not mark the order as paid.
+  }
+}
+```
 
 ## Handle errors
 
@@ -55,4 +86,3 @@ when retrying the same invoice creation.
   TODO: Add the exported TypeScript error classes, constructor options, complete
   method reference, and supported runtime matrix.
 </Note>
-
