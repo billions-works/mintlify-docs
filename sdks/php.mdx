@@ -1,0 +1,64 @@
+---
+title: "PHP SDK"
+description: "Install and use the official Billions PHP SDK."
+icon: "php"
+---
+
+The PHP SDK requires PHP 8.1 or newer and uses Guzzle 7.8 or newer.
+
+## Installation
+
+```bash
+composer require billions-works/sdk-php
+```
+
+## Initialize the client
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use Billions\BillionsApi;
+
+$api = new BillionsApi($_ENV['BILLIONS_API_KEY']);
+```
+
+You can also provide a custom host, API version, or Guzzle client:
+
+```php
+$api = new BillionsApi(
+    apiKey: $_ENV['BILLIONS_API_KEY'],
+    baseUrl: 'https://api.billions.works',
+    version: 'v1',
+    httpClient: $customGuzzleClient,
+);
+```
+
+## Available methods
+
+```php
+$api->getVersion();
+$api->getCurrencies();
+$api->getMerchantInfo();
+$api->estimateFees($payload);
+$api->createInvoice($payload);
+$api->getInvoice($invoiceId);
+$api->getInvoicesByOrderNo($orderNo);
+$api->verifyInvoicePaid($invoiceId, $callbackData);
+$api->verifyInvoicePaid($callbackDataWithId);
+```
+
+API objects are returned as associative arrays with field names matching the
+public API JSON.
+
+## Errors
+
+| Exception | Meaning |
+| --- | --- |
+| `BillionsApiException` | The API request failed; exposes `statusCode` and `responseBody` |
+| `InvoiceNotPaidException` | The retrieved invoice is not completed |
+| `CallbackVerificationException` | Callback data differs from the API invoice |
+
+See [Handle a callback](/examples/handle-a-callback) for verification code.
+

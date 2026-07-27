@@ -1,0 +1,62 @@
+---
+title: "Create an invoice"
+description: "Create a hosted payment invoice with an SDK."
+icon: "file-invoice"
+---
+
+This example creates a `100 USDT` invoice for `ORDER-1001`.
+
+<CodeGroup>
+
+```ts TypeScript
+import { BillionsApi } from '@billions-works/sdk-ts';
+
+const api = new BillionsApi({
+  apiKey: process.env.BILLIONS_API_KEY!,
+});
+
+const invoice = await api.createInvoice({
+  currency: 'USDT',
+  amount: 100,
+  order_no: 'ORDER-1001',
+  idempotencyKey: 'ORDER-1001-attempt-1',
+  callbackUrl: 'https://example.com/webhooks/billions',
+});
+
+console.log(invoice.id);
+console.log(invoice.invoice_url);
+```
+
+```php PHP
+<?php
+
+require 'vendor/autoload.php';
+
+use Billions\BillionsApi;
+
+$api = new BillionsApi($_ENV['BILLIONS_API_KEY']);
+
+$invoice = $api->createInvoice([
+    'currency' => 'USDT',
+    'amount' => 100,
+    'order_no' => 'ORDER-1001',
+    'idempotencyKey' => 'ORDER-1001-attempt-1',
+    'callbackUrl' => 'https://example.com/webhooks/billions',
+]);
+
+echo $invoice['id'] . PHP_EOL;
+echo $invoice['invoice_url'] . PHP_EOL;
+```
+
+</CodeGroup>
+
+## What to store
+
+Store the returned invoice ID with your order before redirecting the customer.
+Also retain the order number, idempotency key, status, and expiration time.
+
+## What to do next
+
+Redirect the customer to `invoice_url`, then implement
+[callback handling](/examples/handle-a-callback).
+

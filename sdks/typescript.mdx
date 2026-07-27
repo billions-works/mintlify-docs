@@ -1,0 +1,58 @@
+---
+title: "TypeScript SDK"
+description: "Install and use the official Billions TypeScript SDK."
+icon: "js"
+---
+
+## Installation
+
+```bash
+npm install @billions-works/sdk-ts
+```
+
+## Initialize the client
+
+```ts
+import { BillionsApi } from '@billions-works/sdk-ts';
+
+const api = new BillionsApi({
+  apiKey: process.env.BILLIONS_API_KEY!,
+});
+```
+
+## Create an invoice
+
+```ts
+const invoice = await api.createInvoice({
+  currency: 'USDT',
+  amount: 100,
+  order_no: 'ORDER-1001',
+  idempotencyKey: 'ORDER-1001-attempt-1',
+  callbackUrl: 'https://example.com/webhooks/billions',
+});
+
+console.log(invoice.invoice_url);
+```
+
+## Common operations
+
+```ts
+const version = await api.getVersion();
+const currencies = await api.getCurrencies();
+const invoice = await api.getInvoice('invoice-id');
+const invoices = await api.getInvoicesByOrder('ORDER-1001');
+```
+
+Invoice objects include `invoice_url`, `order_no`, `expires_at`, and `status`.
+
+## Handle errors
+
+Wrap API calls in `try/catch`, log a correlation identifier instead of secrets,
+and retry only operations that are safe to repeat. Reuse the same idempotency key
+when retrying the same invoice creation.
+
+<Note>
+  TODO: Add the exported TypeScript error classes, constructor options, complete
+  method reference, and supported runtime matrix.
+</Note>
+

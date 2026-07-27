@@ -1,0 +1,50 @@
+---
+title: "Handle a callback"
+description: "Verify a payment callback against the authenticated API."
+icon: "webhook"
+---
+
+The PHP SDK provides a helper that retrieves the invoice and compares it with
+the callback.
+
+```php PHP
+<?php
+
+use Billions\Exception\CallbackVerificationException;
+use Billions\Exception\InvoiceNotPaidException;
+
+try {
+    $verifiedInvoice = $api->verifyInvoicePaid([
+        'id' => $_POST['id'],
+        'status' => $_POST['status'],
+        'paid_amount' => $_POST['paid_amount'],
+    ]);
+
+    // Find the order by $verifiedInvoice['order_no'].
+    // Transition it to paid exactly once.
+} catch (InvoiceNotPaidException | CallbackVerificationException $exception) {
+    // Reject or postpone processing. Do not mark the order as paid.
+}
+```
+
+For TypeScript, use the invoice ID from the callback only to retrieve the
+invoice:
+
+```ts TypeScript
+const callback = request.body;
+const invoice = await api.getInvoice(callback.id);
+
+if (invoice.status !== 'completed') {
+  return response.status(202).send('Payment is not completed');
+}
+
+// Look up invoice.order_no and atomically transition the order to paid.
+return response.status(200).send('OK');
+```
+
+<Warning>
+  Add schema validation, error handling, amount comparison, order matching, and
+  transactional idempotency before using this illustrative TypeScript handler
+  in production.
+</Warning>
+

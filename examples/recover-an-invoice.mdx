@@ -1,0 +1,39 @@
+---
+title: "Recover an invoice"
+description: "Find invoices by your order reference after an uncertain create request."
+icon: "rotate"
+---
+
+A request may time out after Billions has created the invoice but before your
+backend receives the response. Do not immediately create an unrelated invoice.
+
+First, retry the same request with the same idempotency key. You can also look
+up invoices using the stable `order_no`.
+
+<CodeGroup>
+
+```ts TypeScript
+const invoices = await api.getInvoicesByOrder('ORDER-1001');
+
+for (const invoice of invoices) {
+  console.log(invoice.id, invoice.status, invoice.invoice_url);
+}
+```
+
+```php PHP
+$invoices = $api->getInvoicesByOrderNo('ORDER-1001');
+
+foreach ($invoices as $invoice) {
+    echo $invoice['id'] . ' ' . $invoice['status'] . PHP_EOL;
+}
+```
+
+</CodeGroup>
+
+## Recovery rules
+
+1. Retry the same logical create attempt with the same idempotency key.
+2. Query by `order_no` when reconciling your local order with Billions.
+3. Match the amount, currency, and intended attempt before redirecting.
+4. Create a new attempt only when the previous attempt is no longer usable.
+

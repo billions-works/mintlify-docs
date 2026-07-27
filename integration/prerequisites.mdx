@@ -1,0 +1,51 @@
+---
+title: "Prerequisites"
+description: "Prepare credentials, endpoints, and order identifiers before coding."
+icon: "list-check"
+---
+
+Before integrating, prepare the following:
+
+- A Billions API key stored only on your backend.
+- A public HTTPS callback endpoint.
+- A unique order reference in your system.
+- A persistent place to store the Billions invoice ID.
+- A strategy for retrying network requests safely.
+
+<Note>
+  The SDKs use `https://api.billions.works` and public API version `v1` by default.
+</Note>
+
+## Keep credentials server-side
+
+Never embed the API key in browser code, a mobile application, a public
+repository, or logs. Load it from a secret manager or environment variable.
+
+```bash
+BILLIONS_API_KEY=your-api-key
+```
+
+## Define two identifiers
+
+Use separate identifiers for separate jobs:
+
+| Field | Purpose | Recommendation |
+| --- | --- | --- |
+| `order_no` | Connects the invoice to your business order | Use your stable internal order number |
+| `idempotencyKey` | Makes a create attempt safe to retry | Derive it from the order and payment attempt |
+
+An order may have more than one payment attempt. In that case, keep `order_no`
+stable and use a new idempotency key for each intentional attempt.
+
+<Warning>
+  Reuse an idempotency key only when retrying the same logical invoice creation.
+  Do not reuse one key for unrelated orders.
+</Warning>
+
+## Information still required
+
+<Note>
+  TODO: Add the dashboard URL, instructions for creating an API key, available
+  environments, and the definitive list of supported invoice currencies.
+</Note>
+

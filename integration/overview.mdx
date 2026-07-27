@@ -1,0 +1,56 @@
+---
+title: "Integration overview"
+description: "Understand the components and responsibilities in a Billions payment integration."
+icon: "diagram-project"
+---
+
+A Billions integration connects four components:
+
+1. Your checkout, where the customer starts payment.
+2. Your backend, which creates and verifies invoices.
+3. The Billions hosted payment page.
+4. Your callback endpoint, which reacts to invoice updates.
+
+## Responsibilities
+
+| Component | Responsibility |
+| --- | --- |
+| Your frontend | Starts checkout and redirects to `invoice_url` |
+| Your backend | Stores credentials, creates invoices, and verifies status |
+| Billions | Hosts the payment experience and processes the payment |
+| Callback endpoint | Receives a notification and triggers API verification |
+
+## Recommended integration order
+
+<Steps>
+  <Step title="Prepare your account">
+    Obtain an API key and decide which environment you will use.
+  </Step>
+  <Step title="Create invoices">
+    Implement invoice creation on your backend with stable order references and
+    idempotency keys.
+  </Step>
+  <Step title="Redirect customers">
+    Send the customer to the hosted payment URL returned by the API.
+  </Step>
+  <Step title="Handle callbacks safely">
+    Expose an HTTPS endpoint and retrieve the invoice from the API before
+    changing order state.
+  </Step>
+  <Step title="Test failure paths">
+    Cover retries, expired invoices, duplicate callbacks, and delayed payments.
+  </Step>
+  <Step title="Go live">
+    Switch to production credentials and complete the launch checklist.
+  </Step>
+</Steps>
+
+<CardGroup cols={2}>
+  <Card title="Prepare the integration" icon="key" href="/integration/prerequisites">
+    Gather credentials and define your order model.
+  </Card>
+  <Card title="Follow the payment flow" icon="arrow-right" href="/integration/payment-flow">
+    Implement invoice creation through final order confirmation.
+  </Card>
+</CardGroup>
+

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Billions",
+  "description": "Integrate Billions payments into your application or online store.",
+  "colors": {
+    "primary": "#635BFF",
+    "light": "#7C75FF",
+    "dark": "#5046E5"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Introduction",
+        "pages": [
+          "index"
+        ]
+      },
+      {
+        "group": "Integration guide",
+        "pages": [
+          "integration/overview",
+          "integration/prerequisites",
+          "integration/payment-flow",
+          "integration/callbacks-and-security",
+          "integration/go-live-checklist"
+        ]
+      },
+      {
+        "group": "Examples",
+        "pages": [
+          "examples/create-an-invoice",
+          "examples/handle-a-callback",
+          "examples/recover-an-invoice"
+        ]
+      },
+      {
+        "group": "SDKs",
+        "pages": [
+          "sdks/overview",
+          "sdks/typescript",
+          "sdks/php"
+        ]
+      },
+      {
+        "group": "Store integrations",
+        "pages": [
+          "store-integrations/overview",
+          "store-integrations/woocommerce"
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/billions-works"
+    }
+  }
+}
+

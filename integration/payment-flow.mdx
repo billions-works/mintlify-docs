@@ -1,0 +1,86 @@
+---
+title: "Payment flow"
+description: "Implement invoice creation, customer redirect, and payment confirmation."
+icon: "credit-card"
+---
+
+## 1. Create the invoice on your backend
+
+Send the invoice currency, amount, your order reference, an idempotency key, and
+the callback URL.
+
+<CodeGroup>
+
+```ts TypeScript
+const invoice = await api.createInvoice({
+  currency: 'USDT',
+  amount: 100,
+  order_no: 'ORDER-1001',
+  idempotencyKey: 'ORDER-1001-attempt-1',
+  callbackUrl: 'https://example.com/webhooks/billions',
+});
+```
+
+```php PHP
+$invoice = $api->createInvoice([
+    'currency' => 'USDT',
+    'amount' => 100,
+    'order_no' => 'ORDER-1001',
+    'idempotencyKey' => 'ORDER-1001-attempt-1',
+    'callbackUrl' => 'https://example.com/webhooks/billions',
+]);
+```
+
+</CodeGroup>
+
+Persist at least:
+
+- The invoice `id`
+- `order_no`
+- The idempotency key used for the attempt
+- The current invoice `status`
+- The invoice expiration time, when `expires_at` is not `null`
+
+## 2. Redirect to the hosted page
+
+Use the `invoice_url` from the response:
+
+```ts
+return response.redirect(invoice.invoice_url);
+```
+
+Do not construct or modify this URL yourself.
+
+## 3. Treat the callback as a notification
+
+When the callback arrives, extract the invoice identifier and retrieve that
+invoice from the authenticated API. Callback delivery may be duplicated or
+delayed, so processing must be idempotent.
+
+## 4. Update your order from the API response
+
+The invoice status can include:
+
+| Status | Suggested handling |
+| --- | --- |
+| `pending` | Keep the order awaiting payment |
+| `processing` | Show that payment is being processed |
+| `completed` | Mark the order as paid exactly once |
+| `expired` | Offer the customer a new payment attempt |
+| `failed` | Keep the order unpaid and allow recovery |
+| `refund_processing` | Show that a refund is being processed |
+| `refunded` | Mark the payment as refunded |
+| `aml_check` | Keep fulfillment on hold |
+| `aml_block` | Keep fulfillment blocked and follow your review process |
+
+<Warning>
+  Status mapping is a business decision. Do not fulfill goods or services until
+  your backend has retrieved a `completed` invoice from the API.
+</Warning>
+
+## 5. Make completion idempotent
+
+Callbacks and status checks can run more than once. Use a transaction or
+conditional update so inventory, emails, and fulfillment happen only on the
+first transition to paid.
+

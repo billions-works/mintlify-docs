@@ -1,0 +1,45 @@
+---
+title: "Go-live checklist"
+description: "Verify reliability and security before accepting production payments."
+icon: "rocket"
+---
+
+## Configuration
+
+- [ ] Production API credentials are stored in secret storage.
+- [ ] The production API host and version are configured.
+- [ ] The callback URL is public and uses HTTPS.
+- [ ] No credentials or sensitive payloads are written to logs.
+
+## Payment behavior
+
+- [ ] Invoice creation uses a stable `order_no`.
+- [ ] Every logical create attempt has an idempotency key.
+- [ ] The Billions invoice ID is stored with the order.
+- [ ] Customers are redirected using the returned `invoice_url`.
+- [ ] Expired and failed invoices can be retried intentionally.
+
+## Verification and reliability
+
+- [ ] Callback fields are not trusted as proof of payment.
+- [ ] Invoice state is retrieved from the authenticated API.
+- [ ] Duplicate callbacks do not duplicate fulfillment.
+- [ ] Network timeouts and temporary failures are retried safely.
+- [ ] Monitoring alerts on repeated callback or API failures.
+
+## Test cases
+
+- [ ] Successful payment
+- [ ] Abandoned checkout
+- [ ] Expired invoice
+- [ ] Duplicate callback
+- [ ] Callback arriving before the customer returns
+- [ ] Delayed payment confirmation
+- [ ] API timeout during invoice creation
+- [ ] API timeout during callback verification
+
+<Note>
+  TODO: Add production support contacts, status page, rate limits, and the
+  environment-switching procedure.
+</Note>
+

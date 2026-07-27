@@ -1,0 +1,32 @@
+---
+title: "SDK overview"
+description: "Choose an official SDK for your application."
+icon: "boxes-stacked"
+---
+
+Official SDKs provide typed or idiomatic wrappers around the Billions public API.
+
+<CardGroup cols={2}>
+  <Card title="TypeScript SDK" icon="js" href="/sdks/typescript">
+    For Node.js and TypeScript applications. Published as
+    `@billions-works/sdk-ts`.
+  </Card>
+  <Card title="PHP SDK" icon="php" href="/sdks/php">
+    For PHP 8.1 and newer. Published as `billions-works/sdk-php`.
+  </Card>
+</CardGroup>
+
+Both SDKs default to:
+
+- API host: `https://api.billions.works`
+- Public API version: `v1`
+
+## Shared concepts
+
+The SDKs preserve public API field names such as `order_no`, `invoice_url`, and
+`expires_at`. Both support idempotent invoice creation and invoice lookup by
+order number.
+
+Choose the SDK matching your backend runtime. API keys must never be used in
+frontend or mobile client code.
+

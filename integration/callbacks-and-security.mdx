@@ -1,0 +1,60 @@
+---
+title: "Callbacks and security"
+description: "Process invoice notifications without trusting unverified input."
+icon: "shield-halved"
+---
+
+Use callbacks to wake your integration, not as proof of payment.
+
+## Safe callback algorithm
+
+<Steps>
+  <Step title="Accept the request">
+    Parse only enough data to identify the invoice. Reject malformed requests
+    without exposing internal error details.
+  </Step>
+  <Step title="Retrieve the invoice">
+    Call the authenticated Billions API with the invoice ID.
+  </Step>
+  <Step title="Match your records">
+    Confirm the retrieved invoice belongs to the expected `order_no` and payment
+    attempt.
+  </Step>
+  <Step title="Apply the transition once">
+    Update the order in a database transaction and make side effects idempotent.
+  </Step>
+  <Step title="Return promptly">
+    Respond successfully after durable processing, or enqueue slow work for a
+    background worker.
+  </Step>
+</Steps>
+
+## Security checklist
+
+- Keep API keys in server-side secret storage.
+- Require HTTPS for the callback endpoint.
+- Retrieve invoice state from the API before fulfillment.
+- Compare the invoice to the stored order and expected amount.
+- Treat all callback fields as untrusted input.
+- Avoid logging API keys or complete sensitive payloads.
+- Rate-limit the callback endpoint.
+- Make duplicate delivery harmless.
+
+<Tip>
+  The PHP SDK includes `verifyInvoicePaid()`. It retrieves the invoice, requires
+  `completed` status, and compares callback status and paid amount with the API
+  result.
+</Tip>
+
+## Response behavior
+
+Your endpoint should acknowledge a callback only after the event is stored or
+processed durably. If a temporary dependency fails, return the failure response
+expected by your callback retry policy.
+
+<Note>
+  TODO: Document the official callback payload, delivery timeout, retry schedule,
+  expected HTTP success codes, signature mechanism if applicable, and source IP
+  policy if applicable.
+</Note>
+

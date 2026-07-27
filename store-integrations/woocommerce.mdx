@@ -1,0 +1,82 @@
+---
+title: "WooCommerce"
+description: "Install and configure the official Billions payment gateway for WooCommerce."
+icon: "wordpress"
+---
+
+The official plugin adds Billions as a WooCommerce payment gateway. It is
+standalone and does not require Composer, Guzzle, or the Billions PHP SDK.
+
+## Compatibility
+
+- PHP 8.1 or newer
+- WordPress 6.7 or newer
+- WooCommerce 10.5 or newer
+- Classic Checkout
+- Cart and Checkout Blocks
+- High-Performance Order Storage (HPOS)
+
+## Install the plugin
+
+<Steps>
+  <Step title="Download the plugin">
+    Obtain the official plugin ZIP from the approved Billions distribution
+    channel.
+  </Step>
+  <Step title="Upload it to WordPress">
+    In WordPress, open **Plugins → Add New Plugin → Upload Plugin**, choose the
+    ZIP file, and install it.
+  </Step>
+  <Step title="Activate the plugin">
+    Activate **Billions Payments for WooCommerce**.
+  </Step>
+  <Step title="Configure the gateway">
+    Open **WooCommerce → Settings → Payments**, select Billions, and provide the
+    required credentials and currency settings.
+  </Step>
+  <Step title="Run a test order">
+    Complete checkout, pay on the hosted Billions page, and confirm that the
+    WooCommerce order updates after API verification.
+  </Step>
+</Steps>
+
+<Note>
+  TODO: Add the official download URL, screenshots, exact settings fields,
+  environment selection, and a troubleshooting section based on released plugin
+  behavior.
+</Note>
+
+## Payment behavior
+
+The plugin:
+
+1. Creates a Billions invoice for the WooCommerce order.
+2. Stores the invoice ID using WooCommerce order APIs.
+3. Redirects the customer to the hosted payment page.
+4. Receives the Billions callback.
+5. Retrieves the invoice from the authenticated API.
+6. Updates the order using only the API response.
+
+Invoice creation uses both an idempotency key and `order_no` derived from the
+site and order IDs, making retries safe.
+
+## Currency behavior
+
+The store currency must match the configured Billions invoice currency. USD and
+EUR orders are supported directly: the invoice uses the store currency and the
+customer chooses an available cryptocurrency on the hosted payment page.
+
+A supported cryptocurrency can also be used as the WooCommerce base currency
+when it has been registered with WooCommerce.
+
+## Current limitations
+
+- Refunds are not supported.
+- Subscriptions and recurring payments are not supported.
+- Saved payment methods are not supported.
+
+<Warning>
+  Back up the site and test plugin updates in a staging environment before
+  deploying them to a production store.
+</Warning>
+
