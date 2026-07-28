@@ -1,0 +1,114 @@
+---
+title: "Python SDK"
+description: "Install and use the official Billions Python SDK."
+icon: "python"
+---
+
+The Python SDK supports Python 3.10 or newer and uses `httpx` 0.27 or newer.
+It provides synchronous and asynchronous clients.
+
+<Card
+  title="Python SDK on GitHub"
+  icon="github"
+  href="https://github.com/billions-works/py-billions-sdk"
+  cta="View repository"
+>
+  Browse the source code, examples, releases, and issue tracker.
+</Card>
+
+## Installation
+
+```bash
+pip install py-billions-sdk
+```
+
+## Synchronous client
+
+Use `BillionsApi` as a context manager so its HTTP client is closed
+automatically:
+
+```python
+import os
+
+from billions_sdk import BillionsApi
+
+with BillionsApi(os.environ["BILLIONS_API_KEY"]) as api:
+    invoice = api.create_invoice(
+        {
+            "currency": "USDT",
+            "amount": "100.00",
+            "idempotencyKey": "ORDER-1001-attempt-1",
+            "order_no": "ORDER-1001",
+            "callbackUrl": "https://example.com/webhooks/billions",
+        }
+    )
+
+print(invoice["invoice_url"])
+```
+
+## Asynchronous client
+
+`AsyncBillionsApi` exposes the same operations as coroutines:
+
+```python
+import os
+
+from billions_sdk import AsyncBillionsApi
+
+async with AsyncBillionsApi(os.environ["BILLIONS_API_KEY"]) as api:
+    invoice = await api.get_invoice("invoice-id")
+```
+
+## Available methods
+
+Both clients expose the same methods. Await them when using
+`AsyncBillionsApi`.
+
+```python
+api.get_version()
+api.get_currencies()
+api.get_merchant_info()
+api.estimate_fees(payload)
+api.create_invoice(payload)
+api.get_invoice(invoice_id)
+api.get_invoices_by_order_no(order_no)
+api.verify_invoice_paid(invoice_id, callback_data)
+api.verify_invoice_paid(callback_data_with_id)
+```
+
+The default API host is `https://api.billions.works`, and the default public API
+version is `v1`. You can override both or inject a custom `httpx.Client` or
+`httpx.AsyncClient`.
+
+## Verify a payment callback
+
+```python
+from billions_sdk import CallbackVerificationError, InvoiceNotPaidError
+
+try:
+    invoice = api.verify_invoice_paid(
+        {
+            "id": callback["id"],
+            "status": callback["status"],
+            "paid_amount": callback["paid_amount"],
+        }
+    )
+except (InvoiceNotPaidError, CallbackVerificationError):
+    # Do not mark the order as paid.
+    pass
+```
+
+`verify_invoice_paid()` retrieves the authoritative invoice from the API,
+requires `completed` status, and compares the callback status and paid amount.
+Decimal forms such as `100`, `100.0`, and `100.000000000000000000` are treated
+as equivalent.
+
+## Errors
+
+| Exception | Meaning |
+| --- | --- |
+| `BillionsApiError` | The API request failed; exposes `status_code` and `response_body` |
+| `InvoiceNotPaidError` | The authoritative invoice is not completed |
+| `CallbackVerificationError` | Callback data differs from the API invoice |
+
+Transport errors use `status_code == 0`.

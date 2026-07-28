@@ -21,6 +21,18 @@ const invoice = await api.createInvoice({
 });
 ```
 
+```python Python
+invoice = api.create_invoice(
+    {
+        "currency": "USDT",
+        "amount": 100,
+        "order_no": "ORDER-1001",
+        "idempotencyKey": "ORDER-1001-attempt-1",
+        "callbackUrl": "https://example.com/webhooks/billions",
+    }
+)
+```
+
 ```php PHP
 $invoice = $api->createInvoice([
     'currency' => 'USDT',

@@ -22,6 +22,13 @@ for (const invoice of invoices) {
 }
 ```
 
+```python Python
+invoices = api.get_invoices_by_order_no("ORDER-1001")
+
+for invoice in invoices:
+    print(invoice["id"], invoice["status"], invoice["invoice_url"])
+```
+
 ```php PHP
 $invoices = $api->getInvoicesByOrderNo('ORDER-1001');
 

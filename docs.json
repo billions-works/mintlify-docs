@@ -44,6 +44,7 @@
         "pages": [
           "sdks/overview",
           "sdks/typescript",
+          "sdks/python",
           "sdks/php"
         ]
       },

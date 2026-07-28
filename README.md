@@ -25,6 +25,6 @@ information.
 ## Authoring conventions
 
 - Treat TypeScript as the primary SDK in shared guides and examples.
-- In prose, mention TypeScript before PHP.
-- In `CodeGroup` components, use this order: TypeScript, PHP, cURL.
+- In prose, mention TypeScript before Python and PHP.
+- In `CodeGroup` components, use this order: TypeScript, Python, PHP, cURL.
 - Keep SDK-specific details on their respective SDK pages.

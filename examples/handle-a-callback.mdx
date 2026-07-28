@@ -38,6 +38,25 @@ try {
 }
 ```
 
+```python Python
+from billions_sdk import CallbackVerificationError, InvoiceNotPaidError
+
+try:
+    verified_invoice = api.verify_invoice_paid(
+        {
+            "id": callback["id"],
+            "status": callback["status"],
+            "paid_amount": callback["paid_amount"],
+        }
+    )
+
+    # Find the order by verified_invoice["order_no"].
+    # Transition it to paid exactly once.
+except (InvoiceNotPaidError, CallbackVerificationError):
+    # Reject or postpone processing. Do not mark the order as paid.
+    pass
+```
+
 ```php PHP
 <?php
 

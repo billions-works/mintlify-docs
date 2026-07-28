@@ -27,6 +27,26 @@ console.log(invoice.id);
 console.log(invoice.invoice_url);
 ```
 
+```python Python
+import os
+
+from billions_sdk import BillionsApi
+
+with BillionsApi(os.environ["BILLIONS_API_KEY"]) as api:
+    invoice = api.create_invoice(
+        {
+            "currency": "USDT",
+            "amount": 100,
+            "order_no": "ORDER-1001",
+            "idempotencyKey": "ORDER-1001-attempt-1",
+            "callbackUrl": "https://example.com/webhooks/billions",
+        }
+    )
+
+print(invoice["id"])
+print(invoice["invoice_url"])
+```
+
 ```php PHP
 <?php
 
