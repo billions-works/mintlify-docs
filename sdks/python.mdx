@@ -72,6 +72,7 @@ api.estimate_fees(payload)
 api.create_invoice(payload)
 api.get_invoice(invoice_id)
 api.get_invoices_by_order_no(order_no)
+api.get_invoice_from_webhook(webhook)
 api.verify_invoice_paid(invoice_id, callback_data)
 api.verify_invoice_paid(callback_data_with_id)
 ```
@@ -80,26 +81,39 @@ The default API host is `https://api.billions.works`, and the default public API
 version is `v1`. You can override both or inject a custom `httpx.Client` or
 `httpx.AsyncClient`.
 
-## Verify a payment callback
+## Process webhook events
+
+Use `get_invoice_from_webhook()` for both intermediate
+`invoice.status_changed` events and final `invoice.paid` events:
+
+```python
+invoice = api.get_invoice_from_webhook(webhook)
+
+if invoice["status"] == "processing":
+    # Update visible payment state, but do not fulfill the order.
+    pass
+elif invoice["status"] == "completed":
+    # Fulfill the order exactly once.
+    pass
+```
+
+## Verify a paid event
 
 ```python
 from billions_sdk import CallbackVerificationError, InvoiceNotPaidError
 
 try:
     invoice = api.verify_invoice_paid(
-        {
-            "id": callback["id"],
-            "status": callback["status"],
-            "paid_amount": callback["paid_amount"],
-        }
+        webhook
     )
 except (InvoiceNotPaidError, CallbackVerificationError):
     # Do not mark the order as paid.
     pass
 ```
 
-`verify_invoice_paid()` retrieves the authoritative invoice from the API,
-requires `completed` status, and compares the callback status and paid amount.
+`verify_invoice_paid()` accepts the current webhook envelope and legacy callback
+objects. It retrieves the authoritative invoice from the API, requires
+`completed` status, and compares the callback status and paid amount.
 Decimal forms such as `100`, `100.0`, and `100.000000000000000000` are treated
 as equivalent.
 

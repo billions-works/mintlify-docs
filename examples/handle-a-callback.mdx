@@ -4,76 +4,47 @@ description: "Verify a payment callback against the authenticated API."
 icon: "webhook"
 ---
 
-The TypeScript and PHP SDKs provide a helper that retrieves the invoice and
-compares it with the callback.
+Read `data.invoice_id` from the webhook envelope and retrieve the authoritative
+invoice. This works for both intermediate and final statuses.
 
 <CodeGroup>
 
 ```ts TypeScript
-import {
-  CallbackVerificationError,
-  InvoiceNotPaidError,
-} from '@billions-works/sdk-ts';
-
 try {
-  const verifiedInvoice = await api.verifyInvoicePaid({
-    id: request.body.id,
-    status: request.body.status,
-    paid_amount: request.body.paid_amount,
-  });
+  const webhook = request.body;
+  const invoice = await api.getInvoice(webhook.data.invoice_id);
 
-  // Find the order by verifiedInvoice.order_no.
-  // Transition it to paid exactly once.
+  // Update intermediate state when useful.
+  // Fulfill invoice.order_no exactly once only when status is completed.
   return response.status(200).send('OK');
 } catch (error) {
-  if (
-    error instanceof InvoiceNotPaidError ||
-    error instanceof CallbackVerificationError
-  ) {
-    // Reject or postpone processing. Do not mark the order as paid.
-    return response.status(202).send('Payment is not verified');
-  }
-
-  throw error;
+  // A non-200 response causes Billions to retry the webhook.
+  return response.status(500).send('Could not retrieve invoice');
 }
 ```
 
 ```python Python
-from billions_sdk import CallbackVerificationError, InvoiceNotPaidError
-
 try:
-    verified_invoice = api.verify_invoice_paid(
-        {
-            "id": callback["id"],
-            "status": callback["status"],
-            "paid_amount": callback["paid_amount"],
-        }
-    )
+    invoice = api.get_invoice_from_webhook(webhook)
 
-    # Find the order by verified_invoice["order_no"].
-    # Transition it to paid exactly once.
-except (InvoiceNotPaidError, CallbackVerificationError):
-    # Reject or postpone processing. Do not mark the order as paid.
-    pass
+    # Update intermediate state when useful.
+    # Fulfill invoice["order_no"] exactly once only when status is completed.
+except Exception:
+    # Return a non-200 response so Billions retries the webhook.
+    raise
 ```
 
 ```php PHP
 <?php
 
-use Billions\Exception\CallbackVerificationException;
-use Billions\Exception\InvoiceNotPaidException;
-
 try {
-    $verifiedInvoice = $api->verifyInvoicePaid([
-        'id' => $_POST['id'],
-        'status' => $_POST['status'],
-        'paid_amount' => $_POST['paid_amount'],
-    ]);
+    $webhook = json_decode(file_get_contents('php://input'), true, 512, JSON_THROW_ON_ERROR);
+    $invoice = $api->getInvoice($webhook['data']['invoice_id']);
 
-    // Find the order by $verifiedInvoice['order_no'].
-    // Transition it to paid exactly once.
-} catch (InvoiceNotPaidException | CallbackVerificationException $exception) {
-    // Reject or postpone processing. Do not mark the order as paid.
+    // Update intermediate state when useful.
+    // Fulfill $invoice['order_no'] exactly once only when status is completed.
+} catch (Throwable $exception) {
+    // Return a non-200 response so Billions retries the webhook.
 }
 ```
 
@@ -88,7 +59,6 @@ curl --request GET \
 
 <Warning>
   Add callback schema validation, order matching, and transactional idempotency
-  before using these illustrative handlers in production. With cURL, your
-  backend must also require `completed` status and compare the API response with
-  the callback before marking the order as paid.
+  before using these illustrative handlers in production. A callback status is
+  informational until confirmed by the authenticated API.
 </Warning>

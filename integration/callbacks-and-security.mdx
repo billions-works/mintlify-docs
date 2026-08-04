@@ -12,25 +12,96 @@ Billions sends an HTTP `POST` request with a JSON body:
 
 ```json
 {
-  "id": "invoice-id",
+  "event": "invoice.paid",
+  "event_timestamp": "2026-08-04T09:42:08.189Z",
+  "attempt": 1,
+  "previous_attempt_timestamp": null,
+  "invoice_id": "29d30442-91b3-451b-91ed-2ae2c17f89b0",
+  "external_invoice_id": "12",
+  "order_no": "ORDER-1001",
+  "previous_status": "processing",
   "status": "completed",
-  "paid_amount": "100.000000000000000000"
+  "amount": "100.00",
+  "final_amount": "101.00",
+  "paid_amount": "101.00",
+  "merchant_fee": "1.00",
+  "merchant_receive_amount": "100.00",
+  "currency": "USDT_TRON",
+  "settlement_currency": "USDT",
+  "payment_source": "internal",
+  "payment_address": "T...",
+  "updated_at": "2026-08-04T09:42:08.000Z",
+  "data": {
+    "invoice_id": "29d30442-91b3-451b-91ed-2ae2c17f89b0",
+    "external_invoice_id": "12",
+    "order_no": "ORDER-1001",
+    "previous_status": "processing",
+    "status": "completed",
+    "amount": "100.00",
+    "final_amount": "101.00",
+    "paid_amount": "101.00",
+    "merchant_fee": "1.00",
+    "merchant_receive_amount": "100.00",
+    "currency": "USDT_TRON",
+    "settlement_currency": "USDT",
+    "payment_source": "internal",
+    "payment_address": "T...",
+    "updated_at": "2026-08-04T09:42:08.000Z"
+  }
 }
 ```
 
+For new integrations, `data` is the canonical event payload. Its fields are
+temporarily duplicated at the top level for backward compatibility.
+
+### Envelope fields
+
 | Field | Type | Description |
 | --- | --- | --- |
-| `id` | string | Billions invoice ID. Use it to retrieve the invoice from the authenticated API. |
-| `status` | string | Invoice status at the time the callback was created. Treat it as untrusted until verified. |
-| `paid_amount` | string | Amount reported as paid. Compare it with the authenticated API response before fulfillment. |
+| `event` | string | `invoice.paid` or `invoice.status_changed` |
+| `event_timestamp` | string | ISO 8601 time when the event occurred; unchanged across retries |
+| `attempt` | integer | Delivery attempt number, starting at `1` |
+| `previous_attempt_timestamp` | string or null | Previous delivery attempt time; `null` on the first attempt |
+| `data` | object | Canonical invoice event payload |
+
+### Invoice event fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `invoice_id` | string | Billions invoice ID used to retrieve authoritative state |
+| `external_invoice_id` | string or null | Invoice identifier from the underlying payment provider |
+| `order_no` | string or null | Your business order reference |
+| `previous_status` | string | Invoice status before the transition |
+| `status` | string | Invoice status after the transition |
+| `amount` | string | Requested invoice amount |
+| `final_amount` | string | Final amount including applicable fees |
+| `paid_amount` | string | Amount recorded as paid |
+| `merchant_fee` | string | Merchant fee for the invoice |
+| `merchant_receive_amount` | string | Amount credited to the merchant |
+| `currency` | string or null | Invoice currency |
+| `settlement_currency` | string or null | Settlement currency |
+| `payment_source` | string or null | Payment provider or processing source |
+| `payment_address` | string or null | Payment address when applicable |
+| `updated_at` | string | ISO 8601 invoice update time |
 
 The request uses the `Content-Type: application/json` header.
 
 <Warning>
   The callback payload is not proof of payment. An attacker can send a request
-  directly to a public callback endpoint. Retrieve the invoice using `id` and
-  trust only the authenticated API response.
+  directly to a public callback endpoint. Retrieve the invoice using
+  `data.invoice_id` and trust only the authenticated API response.
 </Warning>
+
+## Events and intermediate statuses
+
+| Event | When it is sent |
+| --- | --- |
+| `invoice.status_changed` | Any invoice status transition except transition to `completed` |
+| `invoice.paid` | The invoice transitions to `completed` |
+
+Callbacks can therefore report intermediate statuses such as `processing` and
+`aml_check`. Update visible payment state if useful, but fulfill an order only
+after the authenticated API returns `completed`.
 
 ## Safe callback algorithm
 
@@ -67,18 +138,35 @@ The request uses the `Content-Type: application/json` header.
 - Make duplicate delivery harmless.
 
 <Tip>
-  The TypeScript, Python, and PHP SDKs include a callback verification helper.
-  It retrieves the invoice, requires `completed` status, and compares callback
-  status and paid amount with the API result.
+  The Python SDK provides `get_invoice_from_webhook()` for every event status.
+  Its `verify_invoice_paid()` helper additionally requires `completed` status
+  and compares the webhook status and paid amount with the API result.
 </Tip>
 
-## Response behavior
+## Delivery and response behavior
 
 Your endpoint should acknowledge a callback only after the event is stored or
-processed durably.
+processed durably. Billions considers delivery successful only when the endpoint
+returns HTTP `200`; other responses and transport errors are retried.
+
+Current delivery defaults:
+
+- Request timeout: 10 seconds.
+- Maximum delivery attempts: 10.
+- Retry delay: no earlier than 10 seconds after the previous attempt.
+- `event_timestamp` stays unchanged across retries.
+- `attempt` and `previous_attempt_timestamp` identify retry deliveries.
+
+Each request also includes:
+
+```text
+User-Agent: Billions-Webhooks/1.0
+X-Billions-Webhook-Id: <stable-webhook-id>
+X-Billions-Webhook-Event: <event-name>
+X-Billions-Webhook-Attempt: <attempt-number>
+```
 
 <Note>
-  TODO: Add the delivery timeout, retry schedule, expected HTTP success codes,
-  signature mechanism if applicable, and source IP policy after the callback
-  delivery implementation is finalized.
+  The metadata headers identify a delivery but do not authenticate it. Always
+  retrieve the invoice from the authenticated API before changing order state.
 </Note>
