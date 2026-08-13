@@ -185,12 +185,24 @@ steps,
   --tw-prose-counters: var(--billions-accent);
 }
 
-step [data-component-part="step-number"],
+.step [data-component-part="step-line"] {
+  display: none;
+}
+
 .step [data-component-part="step-number"] {
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.step [data-component-part="step-number"] > div {
+  width: 28px;
+  height: 28px;
   color: var(--billions-accent);
   background: var(--billions-accent-soft);
-  border-color: transparent;
-  border-radius: 16px;
+  border: 0;
+  border-radius: 9999px;
 }
 
 code-block,
