@@ -9,9 +9,31 @@
     "href": "https://billions.works"
   },
   "colors": {
-    "primary": "#635BFF",
-    "light": "#7C75FF",
-    "dark": "#5046E5"
+    "primary": "#FC4C07",
+    "light": "#FC4C07",
+    "dark": "#FF7138"
+  },
+  "appearance": {
+    "default": "system",
+    "strict": false
+  },
+  "fonts": {
+    "family": "Instrument Sans"
+  },
+  "background": {
+    "color": {
+      "light": "#FFFFFF",
+      "dark": "#111110"
+    }
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs",
+    "codeblocks": {
+      "theme": {
+        "light": "github-dark",
+        "dark": "github-dark"
+      }
+    }
   },
   "navigation": {
     "groups": [

@@ -1,0 +1,243 @@
+/* Billions documentation theme — aligned with the Mintlify layout in Figma. */
+:root {
+  --billions-accent: #fc4c07;
+  --billions-accent-hover: #e24406;
+  --billions-accent-soft: #f6e4dd;
+  --billions-background: #ffffff;
+  --billions-surface: #fafafa;
+  --billions-surface-raised: #ffffff;
+  --billions-border: #ededed;
+  --billions-heading: #000000;
+  --billions-text: #555555;
+  --billions-muted: #737373;
+  --billions-code: #222221;
+  --billions-shadow: 0 10px 30px rgb(0 0 0 / 4%);
+}
+
+html.dark {
+  --billions-accent: #ff7138;
+  --billions-accent-hover: #ff8657;
+  --billions-accent-soft: rgb(252 76 7 / 16%);
+  --billions-background: #111110;
+  --billions-surface: #181817;
+  --billions-surface-raised: #1e1e1c;
+  --billions-border: #30302d;
+  --billions-heading: #ffffff;
+  --billions-text: #c8c8c8;
+  --billions-muted: #92928d;
+  --billions-code: #222221;
+  --billions-shadow: 0 12px 36px rgb(0 0 0 / 24%);
+}
+
+html,
+body,
+#body-content {
+  background-color: var(--billions-background);
+}
+
+body {
+  color: var(--billions-text);
+  font-variation-settings: "wdth" 100;
+  text-rendering: optimizeLegibility;
+}
+
+/* Shell */
+#navbar {
+  min-height: 76px;
+  border-bottom-color: var(--billions-border);
+  background-color: color-mix(in srgb, var(--billions-background) 92%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+#sidebar-content {
+  scrollbar-color: var(--billions-border) transparent;
+}
+
+#sidebar-content li[data-active] {
+  color: var(--billions-accent);
+  background: var(--billions-accent-soft);
+  border-radius: 10px;
+}
+
+toc-item[data-active],
+toc-item[data-active-deepest] {
+  color: var(--billions-accent);
+}
+
+[data-component-name="theme-toggle"],
+#topbar-cta-button {
+  border-color: var(--billions-border);
+  border-radius: 16px;
+}
+
+#topbar-cta-button {
+  box-shadow: none;
+}
+
+/* Reading column and typography */
+#content-area {
+  padding-top: 48px;
+}
+
+#content {
+  max-width: 712px;
+}
+
+#page-title {
+  color: var(--billions-heading);
+  font-size: clamp(2.5rem, 4vw, 3rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+}
+
+#content h2 {
+  color: var(--billions-heading);
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.125;
+  letter-spacing: -0.025em;
+}
+
+#content h3,
+#content h4 {
+  color: var(--billions-heading);
+  font-weight: 550;
+  letter-spacing: -0.015em;
+}
+
+#content p,
+#content li {
+  line-height: 1.625;
+}
+
+#content a:not([class]) {
+  text-decoration-color: color-mix(in srgb, var(--billions-accent) 38%, transparent);
+  text-underline-offset: 3px;
+}
+
+/* Native Mintlify components */
+card,
+.card {
+  border-color: var(--billions-border) !important;
+  border-radius: 24px !important;
+  background: var(--billions-surface) !important;
+  box-shadow: none !important;
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+card:hover,
+.card:hover {
+  border-color: color-mix(in srgb, var(--billions-accent) 38%, var(--billions-border)) !important;
+  box-shadow: var(--billions-shadow) !important;
+  transform: translateY(-1px);
+}
+
+callout,
+.callout {
+  border-radius: 16px !important;
+}
+
+steps,
+.steps {
+  --tw-prose-counters: var(--billions-accent);
+}
+
+step [data-component-part="step-number"],
+.step [data-component-part="step-number"] {
+  color: var(--billions-accent);
+  background: var(--billions-accent-soft);
+  border-color: transparent;
+  border-radius: 16px;
+}
+
+code-block,
+code-group,
+.code-block,
+.code-group {
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--billions-code) 82%, white) !important;
+  border-radius: 12px !important;
+  background: var(--billions-code) !important;
+}
+
+#content :not(pre) > code {
+  color: var(--billions-heading);
+  background: var(--billions-surface);
+  border: 1px solid var(--billions-border);
+  border-radius: 7px;
+}
+
+#content table {
+  overflow: hidden;
+  border: 1px solid var(--billions-border);
+  border-radius: 16px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+#content thead {
+  color: var(--billions-heading);
+  background: var(--billions-surface);
+}
+
+#content th,
+#content td {
+  border-color: var(--billions-border);
+}
+
+#pagination {
+  border: 1px solid var(--billions-border);
+  border-radius: 16px;
+  background: var(--billions-surface);
+}
+
+#pagination a {
+  border-radius: 15px;
+}
+
+#pagination a:hover {
+  background: var(--billions-accent-soft);
+}
+
+::selection {
+  color: var(--billions-heading);
+  background: var(--billions-accent-soft);
+}
+
+@media (max-width: 1023px) {
+  #content-area {
+    padding-top: 36px;
+  }
+}
+
+@media (max-width: 767px) {
+  #navbar {
+    min-height: 64px;
+  }
+
+  #content-area {
+    padding-top: 28px;
+  }
+
+  #page-title {
+    font-size: 2.25rem;
+    line-height: 1.08;
+  }
+
+  #content h2 {
+    font-size: 1.75rem;
+  }
+
+  card,
+  .card {
+    border-radius: 20px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  card,
+  .card {
+    transition: none;
+  }
+}
