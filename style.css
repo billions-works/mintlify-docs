@@ -136,6 +136,48 @@ card:hover,
 callout,
 .callout {
   border-radius: 16px !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+}
+
+.callout[data-callout-type="note"] {
+  border-color: #bfd4ff !important;
+}
+
+.callout[data-callout-type="tip"] {
+  border-color: #9edfc4 !important;
+}
+
+.callout[data-callout-type="info"] {
+  border-color: #d4d4d4 !important;
+}
+
+.callout[data-callout-type="warning"] {
+  border-color: #f3c985 !important;
+}
+
+.callout[data-callout-type="danger"] {
+  border-color: #f4aaa6 !important;
+}
+
+html.dark .callout[data-callout-type="note"] {
+  border-color: #315ca8 !important;
+}
+
+html.dark .callout[data-callout-type="tip"] {
+  border-color: #277253 !important;
+}
+
+html.dark .callout[data-callout-type="info"] {
+  border-color: #575757 !important;
+}
+
+html.dark .callout[data-callout-type="warning"] {
+  border-color: #8c5c17 !important;
+}
+
+html.dark .callout[data-callout-type="danger"] {
+  border-color: #963e39 !important;
 }
 
 steps,
@@ -159,6 +201,21 @@ code-group,
   border-color: color-mix(in srgb, var(--billions-code) 82%, white) !important;
   border-radius: 12px !important;
   background: var(--billions-code) !important;
+}
+
+/* Shiki writes its light background and token colors inline. Keep the whole
+   code surface dark and use its dark token palette in both site themes. */
+.code-block [data-component-part="code-block-root"],
+.code-group [data-component-part="code-block-root"],
+.code-block pre.shiki,
+.code-group pre.shiki {
+  color: var(--shiki-dark, #d4d4d4) !important;
+  background-color: var(--billions-code) !important;
+}
+
+.code-block pre.shiki span,
+.code-group pre.shiki span {
+  color: var(--shiki-dark, inherit) !important;
 }
 
 #content :not(pre) > code {
@@ -186,18 +243,14 @@ code-group,
   border-color: var(--billions-border);
 }
 
-#pagination {
-  border: 1px solid var(--billions-border);
-  border-radius: 16px;
-  background: var(--billions-surface);
+#content th:first-child,
+#content td:first-child {
+  padding-left: 16px;
 }
 
-#pagination a {
-  border-radius: 15px;
-}
-
-#pagination a:hover {
-  background: var(--billions-accent-soft);
+#content th:last-child,
+#content td:last-child {
+  padding-right: 16px;
 }
 
 ::selection {
