@@ -217,8 +217,8 @@ code-group,
 
 /* Shiki writes its light background and token colors inline. Keep the whole
    code surface dark and use its dark token palette in both site themes. */
-.code-block [data-component-part="code-block-root"],
-.code-group [data-component-part="code-block-root"],
+#content .code-block [data-component-part="code-block-root"],
+#content .code-group [data-component-part="code-block-root"],
 .code-block pre.shiki,
 .code-group pre.shiki {
   color: var(--shiki-dark, #d4d4d4) !important;
@@ -228,6 +228,28 @@ code-group,
 .code-block pre.shiki span,
 .code-group pre.shiki span {
   color: var(--shiki-dark, inherit) !important;
+}
+
+.code-block [data-fade-overlay],
+.code-group [data-fade-overlay] {
+  --fade-color-light: var(--billions-code) !important;
+  --fade-color-dark: var(--billions-code) !important;
+}
+
+.code-block [data-floating-buttons] button,
+.code-group [data-floating-buttons] button {
+  color: #a3a3a3;
+  background: var(--billions-code) !important;
+}
+
+.code-block [data-floating-buttons] button:hover,
+.code-group [data-floating-buttons] button:hover {
+  color: #ffffff;
+}
+
+.code-block [data-floating-buttons] button svg,
+.code-group [data-floating-buttons] button svg {
+  color: inherit !important;
 }
 
 #content :not(pre) > code {
@@ -253,6 +275,10 @@ code-group,
 #content th,
 #content td {
   border-color: var(--billions-border);
+}
+
+#content th {
+  padding-top: 8px;
 }
 
 #content th:first-child,
