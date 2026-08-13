@@ -26,8 +26,12 @@
       "dark": "#111110"
     }
   },
-  "thumbnails": {
-    "background": "https://billions.works/images/og/og-image.png"
+  "seo": {
+    "metatags": {
+      "og:image": "https://billions.works/images/og/og-image.png",
+      "twitter:image": "https://billions.works/images/og/og-image.png",
+      "twitter:card": "summary_large_image"
+    }
   },
   "styling": {
     "eyebrows": "breadcrumbs",
