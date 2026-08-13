@@ -26,6 +26,9 @@
       "dark": "#111110"
     }
   },
+  "thumbnails": {
+    "background": "https://billions.works/images/og/og-image.png"
+  },
   "styling": {
     "eyebrows": "breadcrumbs",
     "codeblocks": {
