@@ -91,6 +91,12 @@
           "store-integrations/overview",
           "store-integrations/woocommerce"
         ]
+      },
+      {
+        "group": "Legal",
+        "pages": [
+          "legal/overview"
+        ]
       }
     ]
   },
