@@ -51,49 +51,60 @@
     ]
   },
   "navigation": {
-    "groups": [
+    "tabs": [
       {
-        "group": "Introduction",
+        "tab": "Introduction",
         "pages": [
           "index"
         ]
       },
       {
-        "group": "Integration guide",
-        "pages": [
-          "integration/overview",
-          "integration/prerequisites",
-          "integration/payment-flow",
-          "integration/callbacks-and-security",
-          "integration/go-live-checklist"
+        "tab": "Developer",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "developer/overview"
+            ]
+          },
+          {
+            "group": "Integration guide",
+            "pages": [
+              "integration/overview",
+              "integration/prerequisites",
+              "integration/payment-flow",
+              "integration/callbacks-and-security",
+              "integration/go-live-checklist"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/create-an-invoice",
+              "examples/handle-a-callback",
+              "examples/get-invoices-from-api"
+            ]
+          },
+          {
+            "group": "SDKs",
+            "pages": [
+              "sdks/overview",
+              "sdks/typescript",
+              "sdks/python",
+              "sdks/php"
+            ]
+          },
+          {
+            "group": "Store integrations",
+            "pages": [
+              "store-integrations/overview",
+              "store-integrations/woocommerce"
+            ]
+          }
         ]
       },
       {
-        "group": "Examples",
-        "pages": [
-          "examples/create-an-invoice",
-          "examples/handle-a-callback",
-          "examples/get-invoices-from-api"
-        ]
-      },
-      {
-        "group": "SDKs",
-        "pages": [
-          "sdks/overview",
-          "sdks/typescript",
-          "sdks/python",
-          "sdks/php"
-        ]
-      },
-      {
-        "group": "Store integrations",
-        "pages": [
-          "store-integrations/overview",
-          "store-integrations/woocommerce"
-        ]
-      },
-      {
-        "group": "Legal",
+        "tab": "Legal",
         "pages": [
           "legal/overview"
         ]

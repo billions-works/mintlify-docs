@@ -1,56 +1,32 @@
 ---
 title: "Introduction"
-description: "Accept payments with Billions in your application or online store.."
+description: "Find developer documentation and legal information for Billions."
 icon: "house"
 ---
 
-Billions provides a hosted payment flow for accepting payments without building your own checkout or payment-status infrastructure.
-
-Your backend creates an invoice, redirects the customer to the hosted payment page, and confirms the result by retrieving the invoice from the authenticated Billions API.
+Welcome to the Billions documentation. Choose the section that matches what
+you need.
 
 <CardGroup cols={2}>
-  <Card title="Integrate the payment flow" icon="diagram-project" href="/integration/overview">
-    Follow the complete path from API credentials to production launch.
+  <Card title="Developer documentation" icon="code" href="/developer/overview">
+    Integrate Billions payments, explore implementation examples, choose an
+    SDK, or connect an ecommerce store.
   </Card>
 
-  <Card title="Start from an example" icon="code" href="/examples/create-an-invoice">
-    Create an invoice, handle a callback, and retrieve invoices from the API.
-  </Card>
-
-  <Card title="Choose an SDK" icon="box" href="/sdks/overview">
-    Use the TypeScript, Python, or PHP SDK to integrate the Billions API.
-  </Card>
-
-  <Card title="Connect a store" icon="store" href="/store-integrations/overview">
-    Add Billions to WooCommerce with the official plugin.
+  <Card title="Legal documents" icon="scale-balanced" href="/legal/overview">
+    Review the Terms of Use, Privacy Policy, AML Policy, Risk Disclosure,
+    Cookie Policy, and service restrictions.
   </Card>
 </CardGroup>
 
-## How the integration works
+## Where should I start?
 
-<Steps>
-  <Step title="Create an invoice">
-    Your backend sends the amount, currency, order reference, callback URL, and an idempotency key to Billions.
-  </Step>
-  <Step title="Redirect the customer">
-    Open the returned `invoice_url`. The customer completes payment on the Billions-hosted page.
-  </Step>
-  <Step title="Receive a callback">
-    Billions notifies your callback endpoint that the invoice may have changed.
-  </Step>
-  <Step title="Verify with the API">
-    Retrieve the invoice from the authenticated API and update the order only from that response.
-  </Step>
-</Steps>
+- If you are building or maintaining an integration, go to the
+  [Developer documentation](/developer/overview).
+- If you need policies, contractual terms, privacy information, or restricted
+  jurisdictions, go to the [Legal section](/legal/overview).
 
-<Warning>
-  Never mark an order as paid from callback fields alone. Treat the callback as a signal to retrieve the current invoice from the Billions API.
-</Warning>
-
-## Choose a path
-
-- Building a custom application? Start with the [integration guide](/integration/overview).
-- Using Node.js or another TypeScript runtime? See the [TypeScript SDK](/sdks/typescript).
-- Building with Python 3.10 or newer? See the [Python SDK](/sdks/python).
-- Building with PHP 8.1 or newer? See the [PHP SDK](/sdks/php).
-- Running WooCommerce? Install the [WooCommerce integration](/store-integrations/woocommerce).
+<Note>
+  Looking for the Billions product? Visit the
+  [Billions dashboard](https://billions.works).
+</Note>
