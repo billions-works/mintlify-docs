@@ -73,6 +73,7 @@
               "integration/overview",
               "integration/prerequisites",
               "integration/payment-flow",
+              "integration/cryptomus-compatibility",
               "integration/callbacks-and-security",
               "integration/go-live-checklist"
             ]
