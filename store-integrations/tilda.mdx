@@ -12,16 +12,16 @@ Use this API URL for your production store:
 https://api.billions.works/integrations/tilda/create
 ```
 
-For a test configuration, use
-`https://api-test.billions.works/integrations/tilda/create` with test
+For sandbox testing, use
+`https://api-sandbox.billions.works/integrations/tilda/create` with sandbox
 credentials.
 Tilda may require the custom gateway template to be enabled or approved for
 your project.
 
 ## 1. Create credentials
 
-In your Billions account, open **Settings → API**, create an API key, and
-save both values when they are issued:
+In the Billions account for your chosen environment, open **Settings → API**,
+create an API key, and save both values when they are issued:
 
 | Billions credential | Tilda field |
 | --- | --- |
@@ -55,7 +55,7 @@ electronic receipts according to your merchant's jurisdiction.
 ## 3. Map the order fields
 
 In **Advanced settings**, set **API URL** to the production endpoint above (or
-the test endpoint for a test configuration) and use this field mapping:
+the sandbox endpoint for testing) and use this field mapping:
 
 | Tilda field | Billions parameter | Setting |
 | --- | --- | --- |
@@ -126,10 +126,9 @@ returning from the checkout page does not confirm payment.
 ## 6. Check the payment flow
 
 Publish a page with a product and shopping cart, then place a small order.
-The customer should be redirected to a Billions-hosted payment page. With the
-test endpoint, that page is on `test-pay.billions.works`. After payment, open
-**Tilda → Leads → Order details → Payment** and confirm that the order is
-marked paid.
+The customer should be redirected to a Billions-hosted payment page. After
+payment, open **Tilda → Leads → Order details → Payment** and confirm that the
+order is marked paid.
 See [Tilda's guide to leads and orders](https://help.tilda.cc/leads).
 
 Before launch, compare the actual Tilda POST and notification against the
