@@ -17,6 +17,12 @@ The following endpoints require signing:
 Invoice creation and read-only endpoints continue to use the API key without
 these additional signing headers.
 
+The official [TypeScript](/sdks/typescript#withdrawals-and-refunds),
+[Python](/sdks/python#withdrawals-and-refunds), and
+[PHP](/sdks/php#withdrawals-and-refunds) SDKs calculate these signatures
+automatically when you configure the original API `secretKey`. Use the manual
+procedure below for direct HTTP integrations.
+
 ## Required headers
 
 ```text
@@ -132,6 +138,10 @@ For a retry caused by a timeout or lost response:
 - reuse the same request ID;
 - reuse the identical JSON body and endpoint;
 - calculate a fresh timestamp and signature if the old timestamp expired.
+
+With an SDK, persist the request ID before the first call and pass that same ID
+and payload on retry. The SDK creates a fresh timestamp and signature for each
+call.
 
 Retrying an identical completed operation returns the original request without
 creating another debit or payout. Reusing a request ID with another body or

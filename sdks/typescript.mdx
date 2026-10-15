@@ -26,14 +26,14 @@ import { BillionsApi } from '@billions-works/sdk-ts';
 
 const api = new BillionsApi({
   apiKey: process.env.BILLIONS_API_KEY!,
-  webhookSecret: process.env.BILLIONS_API_SECRET,
+  secretKey: process.env.BILLIONS_API_SECRET,
   baseUrl: process.env.BILLIONS_API_URL,
 });
 ```
 
 Use `BILLIONS_API_URL=https://api-sandbox.billions.works` for testing. Omit
-`baseUrl` to use production. `webhookSecret` is the original `secretKey` issued
-with the API key; it is needed only when verifying webhook signatures.
+`baseUrl` to use production. `secretKey` is the original secret issued with
+the API key; it enables signed money operations and webhook verification.
 
 ## Create an invoice
 
@@ -48,6 +48,42 @@ const invoice = await api.createInvoice({
 
 console.log(invoice.invoice_url);
 ```
+
+## Withdrawals and refunds
+
+The SDK signs these operations automatically. Store a unique `requestId` for
+each intended operation before sending it; reuse that ID and the same payload
+if the response is lost.
+
+```ts
+import { randomUUID } from 'node:crypto';
+
+const requestId = randomUUID(); // Persist with this withdrawal attempt.
+const withdrawal = await api.createWithdrawal(
+  { currency: 'EUR', amount: '70', withdrawalMethodId: 123 },
+  { requestId },
+);
+
+// Persist a separate UUID for each refund attempt as well.
+const cryptoRequestId = randomUUID();
+const cryptoRefund = await api.refundCrypto(
+  { invoiceId: 'invoice-id', withdrawToSameAddress: true,
+    reason: 'Customer request' },
+  { requestId: cryptoRequestId },
+);
+const fiatRequestId = randomUUID();
+const fiatRefund = await api.refundFiat(
+  { invoiceId: 'another-invoice-id', reason: 'Customer request' },
+  { requestId: fiatRequestId },
+);
+
+console.log(withdrawal.request.id);
+```
+
+Passing no second argument makes the SDK generate a fresh request ID. Save
+each ID before the call and reuse it with the identical payload on retry.
+See [Withdrawals and refunds](/api/withdrawals-and-refunds) for validation rules
+and response fields.
 
 ## Common operations
 
@@ -83,7 +119,7 @@ const invoice = await api.getInvoiceFromWebhook(request.body);
 
 The body may be the raw JSON text, UTF-8 bytes, or an already parsed object.
 The SDK canonicalizes the JSON according to RFC 8785 JCS, then verifies its
-HMAC-SHA256 signature using `webhookSecret`. It accepts both the full
+HMAC-SHA256 signature using `secretKey`. It accepts both the full
 `jcs-sha256=<hex>` header and a plain hex digest. A valid signature does not
 replace the authenticated invoice lookup.
 

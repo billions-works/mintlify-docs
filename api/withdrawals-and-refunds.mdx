@@ -8,8 +8,17 @@ Withdrawals and refunds are server-side money operations. Every request on
 this page must include the headers described in
 [Request signing](/api/request-signing).
 
-The current official SDKs do not wrap these signed money operations. Use the
-HTTP API directly with the signing helper shown in that guide.
+The official SDKs generate the signature and request headers for these
+operations. See the [TypeScript](/sdks/typescript#withdrawals-and-refunds),
+[Python](/sdks/python#withdrawals-and-refunds), and
+[PHP](/sdks/php#withdrawals-and-refunds) examples. The direct HTTP examples
+below are useful when integrating without an SDK.
+
+| Operation | TypeScript and PHP | Python |
+| --- | --- | --- |
+| Withdrawal | `createWithdrawal()` | `create_withdrawal()` |
+| Crypto refund | `refundCrypto()` | `refund_crypto()` |
+| Fiat refund | `refundFiat()` | `refund_fiat()` |
 
 <Note>
   Use `https://api-sandbox.billions.works` as the base URL while developing and
@@ -41,7 +50,7 @@ operational, the amount must satisfy configured limits, and the available
 balance must be sufficient. Create and manage withdrawal methods in the
 Billions dashboard, then send the method ID in this request.
 
-### TypeScript
+### Direct HTTP TypeScript
 
 ```ts
 const path = '/public/v1/withdrawals/create';
@@ -109,6 +118,8 @@ exactly one incoming transaction with a sender address. The invoice must belong
 to the merchant, be `completed`, use a non-fiat payment currency, and have no
 active or completed refund.
 
+### Direct HTTP TypeScript
+
 ```ts
 const path = '/public/v1/refunds/refundCrypto';
 const body = {
@@ -140,6 +151,8 @@ POST /public/v1/refunds/refundFiat
 
 The invoice must belong to the merchant, be `completed`, settle in fiat, and
 have no active or completed refund. The merchant balance must cover the refund.
+
+### Direct HTTP TypeScript
 
 ```ts
 const path = '/public/v1/refunds/refundFiat';

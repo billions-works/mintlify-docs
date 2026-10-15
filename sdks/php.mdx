@@ -33,20 +33,52 @@ use Billions\BillionsApi;
 $api = new BillionsApi(
     apiKey: $_ENV['BILLIONS_API_KEY'],
     baseUrl: $_ENV['BILLIONS_API_URL'] ?? null,
-    webhookSecret: $_ENV['BILLIONS_API_SECRET'] ?? null,
+    secretKey: $_ENV['BILLIONS_API_SECRET'] ?? null,
 );
 ```
+
+`secretKey` is the original secret issued with the API key. It enables signed
+money operations and webhook signature verification.
 
 You can also provide a custom host, API version, or Guzzle client:
 
 ```php
 $api = new BillionsApi(
     apiKey: $_ENV['BILLIONS_API_KEY'],
+    secretKey: $_ENV['BILLIONS_API_SECRET'],
     baseUrl: 'https://api.billions.works',
     version: 'v1',
     httpClient: $customGuzzleClient,
 );
 ```
+
+## Withdrawals and refunds
+
+The SDK generates the timestamp and signature. Save a unique UUID for each
+intended operation before calling it, then reuse the same ID and payload if
+the response is lost.
+
+```php
+$requestId = $storedWithdrawalRequestId; // Your application's UUID for this attempt.
+$withdrawal = $api->createWithdrawal(
+    ['currency' => 'EUR', 'amount' => '70', 'withdrawalMethodId' => 123],
+    $requestId,
+);
+
+$cryptoRefund = $api->refundCrypto(
+    ['invoiceId' => 'invoice-id', 'withdrawToSameAddress' => true,
+     'reason' => 'Customer request'],
+    $storedCryptoRefundRequestId,
+);
+$fiatRefund = $api->refundFiat(
+    ['invoiceId' => 'another-invoice-id', 'reason' => 'Customer request'],
+    $storedFiatRefundRequestId,
+);
+```
+
+The request ID argument is optional; the SDK generates a new UUID when it is
+omitted. See [Withdrawals and refunds](/api/withdrawals-and-refunds) for
+validation rules and response fields.
 
 ## Available methods
 
@@ -57,6 +89,9 @@ $api->getCountries();
 $api->getMerchantInfo();
 $api->estimateFees($payload);
 $api->createInvoice($payload);
+$api->createWithdrawal($payload, $requestId);
+$api->refundCrypto($payload, $requestId);
+$api->refundFiat($payload, $requestId);
 $api->getInvoice($invoiceId);
 $api->getInvoicesByOrderNo($orderNo);
 $api->getInvoiceFromWebhook($webhook);
@@ -87,7 +122,7 @@ $webhook = json_decode($rawBody, true, 512, JSON_THROW_ON_ERROR);
 $invoice = $api->getInvoiceFromWebhook($webhook);
 ```
 
-Set `webhookSecret` to the original API `secretKey`. The SDK parses the JSON,
+Set `secretKey` to the original API secret. The SDK parses the JSON,
 canonicalizes it according to RFC 8785 JCS, and verifies HMAC-SHA256 with a
 timing-safe comparison. It accepts the full `jcs-sha256=<hex>` header or a
 plain hex digest. Always use the retrieved invoice for payment decisions.

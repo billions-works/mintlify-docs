@@ -35,7 +35,7 @@ from billions_sdk import BillionsApi
 with BillionsApi(
     os.environ["BILLIONS_API_KEY"],
     base_url=os.getenv("BILLIONS_API_URL"),
-    webhook_secret=os.getenv("BILLIONS_API_SECRET"),
+    secret_key=os.getenv("BILLIONS_API_SECRET"),
 ) as api:
     invoice = api.create_invoice(
         {
@@ -49,6 +49,43 @@ with BillionsApi(
 
 print(invoice["invoice_url"])
 ```
+
+## Withdrawals and refunds
+
+Both clients sign these requests automatically. Generate and store a distinct
+UUID for each intended money operation before calling the SDK. Reuse the same
+ID and payload if the response is lost.
+
+```python
+from uuid import uuid4
+
+with BillionsApi(
+    os.environ["BILLIONS_API_KEY"],
+    secret_key=os.environ["BILLIONS_API_SECRET"],
+) as api:
+    request_id = str(uuid4())  # Persist before making the request.
+    withdrawal = api.create_withdrawal(
+        {"currency": "EUR", "amount": "70", "withdrawalMethodId": 123},
+        request_id=request_id,
+    )
+
+    crypto_request_id = str(uuid4())  # Persist a different ID.
+    crypto_refund = api.refund_crypto(
+        {"invoiceId": "invoice-id", "withdrawToSameAddress": True,
+         "reason": "Customer request"},
+        request_id=crypto_request_id,
+    )
+    fiat_request_id = str(uuid4())  # Persist a different ID.
+    fiat_refund = api.refund_fiat(
+        {"invoiceId": "another-invoice-id", "reason": "Customer request"},
+        request_id=fiat_request_id,
+    )
+```
+
+The `request_id` argument is optional, but passing one lets you safely retry
+an uncertain operation. On `AsyncBillionsApi`, await each of these methods.
+See [Withdrawals and refunds](/api/withdrawals-and-refunds) for the request
+rules and response fields.
 
 ## Asynchronous client
 
@@ -75,6 +112,9 @@ api.get_countries()
 api.get_merchant_info()
 api.estimate_fees(payload)
 api.create_invoice(payload)
+api.create_withdrawal(payload, request_id=request_id)
+api.refund_crypto(payload, request_id=request_id)
+api.refund_fiat(payload, request_id=request_id)
 api.get_invoice(invoice_id)
 api.get_invoices_by_order_no(order_no)
 api.get_invoice_from_webhook(webhook)
@@ -100,7 +140,7 @@ if not api.verify_webhook_signature(signature_header, raw_body):
 invoice = api.get_invoice_from_webhook(webhook)
 ```
 
-Set `webhook_secret` to the original API `secretKey` when creating the client.
+Set `secret_key` to the original API `secretKey` when creating the client.
 The method parses JSON text or bytes, canonicalizes it according to RFC 8785
 JCS, and verifies HMAC-SHA256. It accepts `jcs-sha256=<hex>` or a plain hex
 digest. On `AsyncBillionsApi`, `get_invoice_from_webhook()` must be awaited.
