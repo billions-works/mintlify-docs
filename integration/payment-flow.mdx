@@ -45,7 +45,7 @@ $invoice = $api->createInvoice([
 
 ```bash cURL
 curl --request POST \
-  --url https://api.billions.works/public/v1/invoices/create \
+  --url "$BILLIONS_API_URL/public/v1/invoices/create" \
   --header "Content-Type: application/json" \
   --header "x-api-key: $BILLIONS_API_KEY" \
   --data '{
@@ -58,6 +58,9 @@ curl --request POST \
 ```
 
 </CodeGroup>
+
+Set `BILLIONS_API_URL=https://api-sandbox.billions.works` while testing and
+switch it to `https://api.billions.works` only for production.
 
 Persist at least:
 

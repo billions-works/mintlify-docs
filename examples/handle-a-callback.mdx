@@ -5,7 +5,9 @@ icon: "webhook"
 ---
 
 Read `data.invoice_id` from the webhook envelope and retrieve the authoritative
-invoice. This works for both intermediate and final statuses.
+invoice. This is the recommended verification flow for both intermediate and
+final statuses. Webhook signature verification is optional defense in depth and
+does not replace the API lookup.
 
 <CodeGroup>
 
@@ -14,6 +16,7 @@ try {
   const webhook = request.body;
   const invoice = await api.getInvoice(webhook.data.invoice_id);
 
+  // Deduplicate deliveries using webhook.webhook_id.
   // Update intermediate state when useful.
   // Fulfill invoice.order_no exactly once only when status is completed.
   return response.status(200).send('OK');
@@ -27,6 +30,7 @@ try {
 try:
     invoice = api.get_invoice_from_webhook(webhook)
 
+    # Deduplicate deliveries using webhook["webhook_id"].
     # Update intermediate state when useful.
     # Fulfill invoice["order_no"] exactly once only when status is completed.
 except Exception:
@@ -41,6 +45,7 @@ try {
     $webhook = json_decode(file_get_contents('php://input'), true, 512, JSON_THROW_ON_ERROR);
     $invoice = $api->getInvoice($webhook['data']['invoice_id']);
 
+    // Deduplicate deliveries using $webhook['webhook_id'].
     // Update intermediate state when useful.
     // Fulfill $invoice['order_no'] exactly once only when status is completed.
 } catch (Throwable $exception) {
@@ -50,12 +55,16 @@ try {
 
 ```bash cURL
 curl --request GET \
-  --url "https://api.billions.works/public/v1/invoices/$BILLIONS_INVOICE_ID" \
+  --url "$BILLIONS_API_URL/public/v1/invoices/$BILLIONS_INVOICE_ID" \
   --header "Content-Type: application/json" \
   --header "x-api-key: $BILLIONS_API_KEY"
 ```
 
 </CodeGroup>
+
+To authenticate the callback before this lookup, verify
+`X-Billions-Signature` as described in
+[Callbacks and security](/integration/callbacks-and-security#webhook-signature).
 
 <Warning>
   Add callback schema validation, order matching, and transactional idempotency

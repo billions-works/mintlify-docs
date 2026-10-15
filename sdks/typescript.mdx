@@ -26,8 +26,12 @@ import { BillionsApi } from '@billions-works/sdk-ts';
 
 const api = new BillionsApi({
   apiKey: process.env.BILLIONS_API_KEY!,
+  baseUrl: process.env.BILLIONS_API_URL,
 });
 ```
+
+Use `BILLIONS_API_URL=https://api-sandbox.billions.works` for testing. Omit
+`baseUrl` to use production.
 
 ## Create an invoice
 

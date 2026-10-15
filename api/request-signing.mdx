@@ -1,0 +1,153 @@
+---
+title: "Request signing"
+description: "Sign withdrawals and refunds with RFC 8785 JCS and HMAC-SHA256."
+icon: "signature"
+---
+
+Requests that move funds require an additional signature. This protects the
+HTTP method, exact route, timestamp, request ID, and complete JSON body from
+tampering.
+
+The following endpoints require signing:
+
+- `POST /public/v1/withdrawals/create`
+- `POST /public/v1/refunds/refundCrypto`
+- `POST /public/v1/refunds/refundFiat`
+
+Invoice creation and read-only endpoints continue to use the API key without
+these additional signing headers.
+
+## Required headers
+
+```text
+x-api-key: <merchant API key>
+x-billions-timestamp: <current Unix time in seconds>
+x-billions-request-id: <UUID for this logical operation>
+x-billions-request-signature: v1=<64 lowercase HMAC hex characters>
+content-type: application/json
+```
+
+The timestamp must be within five minutes of Billions server time. The request
+ID provides idempotency and becomes `request.id` in a successful response.
+
+## Signature calculation
+
+Parse the body as JSON and canonicalize it using
+[RFC 8785 JCS](https://www.rfc-editor.org/rfc/rfc8785.html). The exact route
+path must include `/public/v1` and must not include the hostname or query string.
+
+```text
+canonical = RFC8785_JCS(parsed_request_json)
+message   = "POST\n" + path + "\n" + timestamp + "\n" + requestId + "\n" + canonical
+signature = lowercase_hex(HMAC_SHA256(UTF8(secretKey), UTF8(message)))
+header    = "v1=" + signature
+```
+
+Use the original `secretKey` returned once when the API key was created as
+UTF-8 **text**. Although it looks like a 64-character hexadecimal value, do not
+hex-decode it. Older API keys that were issued before signed operations were
+introduced must be revoked and reissued.
+
+### TypeScript / Node.js
+
+Install an RFC 8785 implementation:
+
+```bash
+npm install canonicalize
+```
+
+```ts
+import { createHmac, randomUUID } from 'node:crypto';
+import canonicalize from 'canonicalize';
+
+function signBillionsRequest(
+  path: string,
+  body: unknown,
+  apiKey: string,
+  secretKey: string,
+  requestId = randomUUID(),
+) {
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const canonicalBody = canonicalize(body);
+
+  if (canonicalBody === undefined) {
+    throw new Error('Body is not valid RFC 8785 JSON');
+  }
+
+  const message = `POST\n${path}\n${timestamp}\n${requestId}\n${canonicalBody}`;
+  const signature = createHmac('sha256', secretKey)
+    .update(message, 'utf8')
+    .digest('hex');
+
+  return {
+    requestId,
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': apiKey,
+      'x-billions-timestamp': timestamp,
+      'x-billions-request-id': requestId,
+      'x-billions-request-signature': `v1=${signature}`,
+    },
+  };
+}
+```
+
+### PHP
+
+Use an RFC 8785-compatible library to produce `$canonicalJson`; ordinary
+`json_encode()` with sorted top-level keys is not sufficient.
+
+```php
+<?php
+
+$path = '/public/v1/withdrawals/create';
+$body = [
+    'currency' => 'EUR',
+    'amount' => '70',
+    'withdrawalMethodId' => 123,
+];
+$timestamp = (string) time();
+// uuid_create() is provided by the PECL UUID extension. Any RFC 4122 UUID v4
+// generator can be used here.
+$requestId = uuid_create(UUID_TYPE_RANDOM);
+
+// Produce this with an RFC 8785 JCS implementation.
+$canonicalJson = $jcsCanonicalizer->canonicalize($body);
+$message = "POST\n{$path}\n{$timestamp}\n{$requestId}\n{$canonicalJson}";
+$signature = hash_hmac('sha256', $message, $secretKey);
+
+$headers = [
+    'Content-Type: application/json',
+    'x-api-key: ' . $apiKey,
+    'x-billions-timestamp: ' . $timestamp,
+    'x-billions-request-id: ' . $requestId,
+    'x-billions-request-signature: v1=' . $signature,
+];
+```
+
+## Safe retries
+
+For a retry caused by a timeout or lost response:
+
+- reuse the same request ID;
+- reuse the identical JSON body and endpoint;
+- calculate a fresh timestamp and signature if the old timestamp expired.
+
+Retrying an identical completed operation returns the original request without
+creating another debit or payout. Reusing a request ID with another body or
+endpoint returns `409`. If the original request is still running or requires
+reconciliation, the retry also returns `409`.
+
+## Common responses
+
+| Status | Meaning |
+| --- | --- |
+| `400` | The signed JSON is valid, but operation data or business validation failed |
+| `401` | API key, timestamp, request ID format, or signature is missing or invalid |
+| `403` | The API key must be reissued before signed operations can be used |
+| `409` | The request ID was reused with different data, or the original operation is still being reconciled |
+
+<Warning>
+  Never generate a new request ID only because the response was lost. A new ID
+  authorizes a new financial operation.
+</Warning>

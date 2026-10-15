@@ -1,0 +1,179 @@
+---
+title: "Withdrawals and refunds"
+description: "Create signed withdrawal, crypto refund, and fiat refund requests."
+icon: "money-bill-transfer"
+---
+
+Withdrawals and refunds are server-side money operations. Every request on
+this page must include the headers described in
+[Request signing](/api/request-signing).
+
+<Note>
+  Use `https://api-sandbox.billions.works` as the base URL while developing and
+  testing these flows.
+</Note>
+
+## Create a withdrawal
+
+```http
+POST /public/v1/withdrawals/create
+```
+
+```json
+{
+  "currency": "EUR",
+  "amount": "70",
+  "withdrawalMethodId": 123
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `currency` | string | Currency of the existing withdrawal method |
+| `amount` | string | Positive amount; send monetary values as strings |
+| `withdrawalMethodId` | integer | Existing withdrawal method owned by the API-key merchant |
+
+The selected method must use the same currency, the merchant must be
+operational, the amount must satisfy configured limits, and the available
+balance must be sufficient. Create and manage withdrawal methods in the
+Billions dashboard, then send the method ID in this request.
+
+### TypeScript
+
+```ts
+const path = '/public/v1/withdrawals/create';
+const body = {
+  currency: 'EUR',
+  amount: '70',
+  withdrawalMethodId: 123,
+};
+const { headers } = signBillionsRequest(path, body, apiKey, secretKey);
+
+const response = await fetch(`${billionsApiUrl}${path}`, {
+  method: 'POST',
+  headers,
+  body: JSON.stringify(body),
+});
+
+if (!response.ok) throw new Error(`Withdrawal failed: ${response.status}`);
+const { request } = await response.json();
+```
+
+### cURL
+
+Generate the timestamp, UUID, and signature on your backend before making the
+request:
+
+```bash
+curl --request POST \
+  --url "$BILLIONS_API_URL/public/v1/withdrawals/create" \
+  --header "Content-Type: application/json" \
+  --header "x-api-key: $BILLIONS_API_KEY" \
+  --header "x-billions-timestamp: $BILLIONS_TIMESTAMP" \
+  --header "x-billions-request-id: $BILLIONS_REQUEST_ID" \
+  --header "x-billions-request-signature: v1=$BILLIONS_SIGNATURE" \
+  --data '{"currency":"EUR","amount":"70","withdrawalMethodId":123}'
+```
+
+## Refund a crypto invoice
+
+```http
+POST /public/v1/refunds/refundCrypto
+```
+
+Refund to the single sender address recorded on the invoice:
+
+```json
+{
+  "invoiceId": "29d30442-91b3-451b-91ed-2ae2c17f89b0",
+  "withdrawToSameAddress": true,
+  "reason": "Customer request"
+}
+```
+
+Or provide the destination explicitly:
+
+```json
+{
+  "invoiceId": "29d30442-91b3-451b-91ed-2ae2c17f89b0",
+  "address": "TExampleRefundAddress",
+  "reason": "Customer request"
+}
+```
+
+`withdrawToSameAddress: true` is accepted only when the invoice contains
+exactly one incoming transaction with a sender address. The invoice must belong
+to the merchant, be `completed`, use a non-fiat payment currency, and have no
+active or completed refund.
+
+```ts
+const path = '/public/v1/refunds/refundCrypto';
+const body = {
+  invoiceId: '29d30442-91b3-451b-91ed-2ae2c17f89b0',
+  withdrawToSameAddress: true,
+  reason: 'Customer request',
+};
+const { headers } = signBillionsRequest(path, body, apiKey, secretKey);
+
+const response = await fetch(`${billionsApiUrl}${path}`, {
+  method: 'POST',
+  headers,
+  body: JSON.stringify(body),
+});
+```
+
+## Refund a fiat invoice
+
+```http
+POST /public/v1/refunds/refundFiat
+```
+
+```json
+{
+  "invoiceId": "29d30442-91b3-451b-91ed-2ae2c17f89b0",
+  "reason": "Customer request"
+}
+```
+
+The invoice must belong to the merchant, be `completed`, settle in fiat, and
+have no active or completed refund. The merchant balance must cover the refund.
+
+```ts
+const path = '/public/v1/refunds/refundFiat';
+const body = {
+  invoiceId: '29d30442-91b3-451b-91ed-2ae2c17f89b0',
+  reason: 'Customer request',
+};
+const { headers } = signBillionsRequest(path, body, apiKey, secretKey);
+
+const response = await fetch(`${billionsApiUrl}${path}`, {
+  method: 'POST',
+  headers,
+  body: JSON.stringify(body),
+});
+```
+
+## Response
+
+All three endpoints return the operation under `request`. Its `id` equals the
+signed `x-billions-request-id`.
+
+```json
+{
+  "request": {
+    "id": "cd7c2f8a-08b6-4db4-8a93-f00ce1f75ea5",
+    "currency": "EUR",
+    "amount": "70",
+    "withdrawal_method_id": 123,
+    "status": "processing",
+    "payout_processor_status": null,
+    "payout_processor_tx_id": null,
+    "created_at": "2026-10-15T10:00:00.000Z",
+    "updated_at": "2026-10-15T10:00:00.000Z"
+  }
+}
+```
+
+Refund responses additionally include `invoice_id`, `type`, `to_address`, and
+`withdraw_to_same_address`. Payout processor status and transaction ID may be
+filled asynchronously.

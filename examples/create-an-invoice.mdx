@@ -70,7 +70,7 @@ echo $invoice['invoice_url'] . PHP_EOL;
 
 ```bash cURL
 curl --request POST \
-  --url https://api.billions.works/public/v1/invoices/create \
+  --url "$BILLIONS_API_URL/public/v1/invoices/create" \
   --header "Content-Type: application/json" \
   --header "x-api-key: $BILLIONS_API_KEY" \
   --data '{

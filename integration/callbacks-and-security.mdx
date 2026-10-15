@@ -12,6 +12,7 @@ Billions sends an HTTP `POST` request with a JSON body:
 
 ```json
 {
+  "webhook_id": "b746acdb-52b3-43ee-baae-dcd122d34318",
   "event": "invoice.paid",
   "event_timestamp": "2026-08-04T09:42:08.189Z",
   "attempt": 1,
@@ -25,11 +26,15 @@ Billions sends an HTTP `POST` request with a JSON body:
   "final_amount": "101.00",
   "paid_amount": "101.00",
   "merchant_fee": "1.00",
+  "network_and_other_fees": "0.00",
   "merchant_receive_amount": "100.00",
   "currency": "USDT_TRON",
   "settlement_currency": "USDT",
   "payment_source": "internal",
   "payment_address": "T...",
+  "payment_currency": "USDT_TRON",
+  "payment_amount": "101.00",
+  "transactions": [],
   "updated_at": "2026-08-04T09:42:08.000Z",
   "data": {
     "invoice_id": "29d30442-91b3-451b-91ed-2ae2c17f89b0",
@@ -41,11 +46,15 @@ Billions sends an HTTP `POST` request with a JSON body:
     "final_amount": "101.00",
     "paid_amount": "101.00",
     "merchant_fee": "1.00",
+    "network_and_other_fees": "0.00",
     "merchant_receive_amount": "100.00",
     "currency": "USDT_TRON",
     "settlement_currency": "USDT",
     "payment_source": "internal",
     "payment_address": "T...",
+    "payment_currency": "USDT_TRON",
+    "payment_amount": "101.00",
+    "transactions": [],
     "updated_at": "2026-08-04T09:42:08.000Z"
   }
 }
@@ -58,6 +67,7 @@ temporarily duplicated at the top level for backward compatibility.
 
 | Field | Type | Description |
 | --- | --- | --- |
+| `webhook_id` | string | Stable delivery ID; use it to deduplicate retries |
 | `event` | string | `invoice.paid` or `invoice.status_changed` |
 | `event_timestamp` | string | ISO 8601 time when the event occurred; unchanged across retries |
 | `attempt` | integer | Delivery attempt number, starting at `1` |
@@ -77,19 +87,23 @@ temporarily duplicated at the top level for backward compatibility.
 | `final_amount` | string | Final amount including applicable fees |
 | `paid_amount` | string | Amount recorded as paid |
 | `merchant_fee` | string | Merchant fee for the invoice |
+| `network_and_other_fees` | string | Network and other applicable fees |
 | `merchant_receive_amount` | string | Amount credited to the merchant |
 | `currency` | string or null | Invoice currency |
 | `settlement_currency` | string or null | Settlement currency |
 | `payment_source` | string or null | Payment provider or processing source |
 | `payment_address` | string or null | Payment address when applicable |
+| `payment_currency` | string or null | Currency used by the active payment method |
+| `payment_amount` | string or null | Amount expected by the active payment method |
+| `transactions` | array | Transactions recorded for the invoice |
 | `updated_at` | string | ISO 8601 invoice update time |
 
 The request uses the `Content-Type: application/json` header.
 
 <Warning>
-  The callback payload is not proof of payment. An attacker can send a request
-  directly to a public callback endpoint. Retrieve the invoice using
-  `data.invoice_id` and trust only the authenticated API response.
+  Even a correctly signed callback is a notification, not the recommended
+  source of payment truth. Retrieve the invoice using `data.invoice_id` and
+  trust the authenticated API response before fulfillment.
 </Warning>
 
 ## Events and intermediate statuses
@@ -107,8 +121,8 @@ after the authenticated API returns `completed`.
 
 <Steps>
   <Step title="Accept the request">
-    Parse only enough data to identify the invoice. Reject malformed requests
-    without exposing internal error details.
+    Parse the JSON and read `data.invoice_id`. You may verify the signature as
+    defense in depth, but do not make fulfillment depend only on callback data.
   </Step>
   <Step title="Retrieve the invoice">
     Call the authenticated Billions API with the invoice ID.
@@ -126,11 +140,131 @@ after the authenticated API returns `completed`.
   </Step>
 </Steps>
 
+## Webhook signature
+
+Every delivery includes:
+
+```text
+x-billions-signature: jcs-sha256=<64 lowercase HMAC hex characters>
+```
+
+Billions signs the entire **parsed webhook object**, including the envelope,
+top-level compatibility fields, and `data`. Both sides canonicalize that JSON
+value with [RFC 8785 JCS](https://www.rfc-editor.org/rfc/rfc8785.html):
+
+```text
+canonical = RFC8785_JCS(parsed_webhook_json)
+key       = UTF8(original API key secretKey)
+digest    = HMAC_SHA256(key, UTF8(canonical))
+header    = "jcs-sha256=" + lowercase_hex(digest)
+```
+
+The API key secret is used as UTF-8 text, not as hex-decoded bytes. It is the
+original `secretKey` displayed once when the API key was created. Reissue older
+API keys that do not have a signing secret.
+
+### Verify in TypeScript / Node.js
+
+Install an RFC 8785 implementation with `npm install canonicalize`:
+
+```ts
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import canonicalize from 'canonicalize';
+
+function verifyBillionsWebhook(
+  webhook: unknown,
+  signatureHeader: string,
+  secretKey: string,
+): boolean {
+  const match = /^jcs-sha256=([a-f0-9]{64})$/.exec(signatureHeader);
+  const canonical = canonicalize(webhook);
+  if (!match || canonical === undefined) return false;
+
+  const received = Buffer.from(match[1], 'hex');
+  const expected = createHmac('sha256', secretKey)
+    .update(canonical, 'utf8')
+    .digest();
+
+  return received.length === expected.length
+    && timingSafeEqual(received, expected);
+}
+
+const signature = String(request.headers['x-billions-signature'] ?? '');
+if (!verifyBillionsWebhook(request.body, signature, secretKey)) {
+  return response.sendStatus(401);
+}
+
+// A valid signature does not replace this authoritative API lookup.
+const invoice = await api.getInvoice(request.body.data.invoice_id);
+```
+
+### Verify in PHP
+
+Decode JSON as objects and canonicalize the resulting value with an RFC 8785
+implementation. Do not replace JCS with ordinary `json_encode()` or a custom
+key sort.
+
+```php
+<?php
+
+$webhook = json_decode($rawBody, false, 512, JSON_THROW_ON_ERROR);
+$signatureHeader = $_SERVER['HTTP_X_BILLIONS_SIGNATURE'] ?? '';
+
+// Produce this with an RFC 8785 JCS implementation.
+$canonicalJson = $jcsCanonicalizer->canonicalize($webhook);
+$expected = 'jcs-sha256=' . hash_hmac('sha256', $canonicalJson, $secretKey);
+
+if (!hash_equals($expected, $signatureHeader)) {
+    http_response_code(401);
+    exit;
+}
+
+// Still retrieve the invoice from GET /public/v1/invoices/{id}.
+```
+
+JCS keeps array order, sorts object keys recursively by UTF-16 code units, and
+uses ECMAScript-compatible JSON serialization. Do not mutate string values,
+turn objects into arrays, or parse money into imprecise numbers before
+verification. Compare digests in constant time.
+
+### Test vector
+
+```text
+secretKey:  0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+input JSON: {"status":"completed","message":"Заказ/1"}
+JCS output: {"message":"Заказ/1","status":"completed"}
+signature:  jcs-sha256=f5aaad7e7c75acd4dd679d9a58f708d37fb061bfa7bfd2f12117992715153e92
+```
+
+The signature changes on retries because `attempt` and
+`previous_attempt_timestamp` change. `event_timestamp` remains stable. Do not
+reject a valid retry only because its event timestamp is old; deduplicate using
+`webhook_id`.
+
+## Recommended verification: retrieve the invoice
+
+Signature verification proves that the payload came from a holder of the API
+key secret. It does not make the webhook a better source of current state than
+the API. The recommended integration remains:
+
+```bash
+curl --request GET \
+  --url "$BILLIONS_API_URL/public/v1/invoices/$BILLIONS_INVOICE_ID" \
+  --header "x-api-key: $BILLIONS_API_KEY"
+```
+
+Use the returned invoice status, amount, currency, and `order_no` for business
+decisions. This also handles missing or invalid signatures, delayed deliveries,
+and webhooks missed during downtime. The API returns the **current** invoice
+state, which may be newer than the event that triggered the callback.
+
 ## Security checklist
 
 - Keep API keys in server-side secret storage.
 - Require HTTPS for the callback endpoint.
 - Retrieve invoice state from the API before fulfillment.
+- If you verify signatures, use RFC 8785 JCS and a constant-time comparison.
+- Keep the API key secret server-side and reissue legacy keys when necessary.
 - Compare the invoice to the stored order and expected amount.
 - Treat all callback fields as untrusted input.
 - Avoid logging API keys or complete sensitive payloads.
@@ -164,9 +298,11 @@ User-Agent: Billions-Webhooks/1.0
 X-Billions-Webhook-Id: <stable-webhook-id>
 X-Billions-Webhook-Event: <event-name>
 X-Billions-Webhook-Attempt: <attempt-number>
+X-Billions-Signature: jcs-sha256=<64 lowercase hex characters>
 ```
 
 <Note>
-  The metadata headers identify a delivery but do not authenticate it. Always
-  retrieve the invoice from the authenticated API before changing order state.
+  The ID, event, and attempt headers identify a delivery but do not authenticate
+  it. Only `X-Billions-Signature` authenticates the payload, and the invoice API
+  remains the source of truth before changing order state.
 </Note>

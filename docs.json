@@ -78,6 +78,14 @@
             ]
           },
           {
+            "group": "Public API",
+            "pages": [
+              "api/overview",
+              "api/request-signing",
+              "api/withdrawals-and-refunds"
+            ]
+          },
+          {
             "group": "Examples",
             "pages": [
               "examples/create-an-invoice",

@@ -39,7 +39,7 @@ foreach ($invoices as $invoice) {
 
 ```bash cURL
 curl --request GET \
-  --url https://api.billions.works/public/v1/invoices/byOrder/ORDER-1001 \
+  --url "$BILLIONS_API_URL/public/v1/invoices/byOrder/ORDER-1001" \
   --header "Content-Type: application/json" \
   --header "x-api-key: $BILLIONS_API_KEY"
 ```

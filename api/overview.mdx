@@ -1,0 +1,69 @@
+---
+title: "Public API overview"
+description: "Environments, authentication, and endpoints available in Billions Public API v1."
+icon: "brackets-curly"
+---
+
+Billions Public API v1 is available in separate sandbox and production
+environments.
+
+| Environment | Base URL |
+| --- | --- |
+| Sandbox | `https://api-sandbox.billions.works` |
+| Production | `https://api.billions.works` |
+
+Use sandbox for development, automated tests, and integration verification.
+Move to the production base URL only after completing the go-live checklist.
+
+## Authentication levels
+
+Most merchant endpoints require the API key in a request header:
+
+```text
+x-api-key: <merchant API key>
+```
+
+Endpoints that can move funds require both the API key and an HMAC signature
+created with the API key secret. See [Request signing](/api/request-signing).
+
+| Authentication | Endpoints |
+| --- | --- |
+| None | Version, currencies, countries |
+| API key | Merchant profile, invoice creation, fee estimation, invoice retrieval |
+| API key + signed request | Withdrawal creation, crypto refunds, fiat refunds |
+
+## Endpoints
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/public/v1/version` | Return the public API version |
+| `GET` | `/public/v1/currencies` | List currently supported currencies and their metadata |
+| `GET` | `/public/v1/countries` | List supported countries |
+| `GET` | `/public/v1/me` | Return the merchant associated with the API key |
+| `POST` | `/public/v1/invoices/create` | Create an invoice |
+| `POST` | `/public/v1/invoices/estimateFees` | Estimate invoice fees |
+| `GET` | `/public/v1/invoices/{id}` | Retrieve the current invoice by Billions ID |
+| `GET` | `/public/v1/invoices/byOrder/{order_no}` | Retrieve invoices by your order reference |
+| `POST` | `/public/v1/withdrawals/create` | Create a signed withdrawal request |
+| `POST` | `/public/v1/refunds/refundCrypto` | Create a signed crypto refund request |
+| `POST` | `/public/v1/refunds/refundFiat` | Create a signed fiat refund request |
+
+## Discover the API
+
+Use the OpenAPI specification for the environment you are calling to inspect
+its currently deployed request and response schemas. During a staged rollout,
+an endpoint may appear in one environment before another:
+
+- Sandbox Swagger UI:
+  [`https://api-sandbox.billions.works/public/v1/docs`](https://api-sandbox.billions.works/public/v1/docs)
+- Sandbox OpenAPI JSON:
+  [`https://api-sandbox.billions.works/public/v1/swagger.json`](https://api-sandbox.billions.works/public/v1/swagger.json)
+- Production Swagger UI:
+  [`https://api.billions.works/public/v1/docs`](https://api.billions.works/public/v1/docs)
+- Production OpenAPI JSON:
+  [`https://api.billions.works/public/v1/swagger.json`](https://api.billions.works/public/v1/swagger.json)
+
+<Warning>
+  Keep API keys and API key secrets on your backend. Never expose them in a
+  browser bundle, mobile application, URL, callback payload, or log.
+</Warning>

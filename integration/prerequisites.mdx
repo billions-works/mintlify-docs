@@ -13,16 +13,36 @@ Before integrating, prepare the following:
 - A strategy for retrying network requests safely.
 
 <Note>
-  The SDKs use `https://api.billions.works` and public API version `v1` by default.
+  The SDKs use `https://api.billions.works` and public API version `v1` by
+  default. Use `https://api-sandbox.billions.works` while testing.
 </Note>
+
+## Choose an environment
+
+| Environment | Base URL | Use it for |
+| --- | --- | --- |
+| Sandbox | `https://api-sandbox.billions.works` | Integration development and testing |
+| Production | `https://api.billions.works` | Live payments and money operations |
+
+Keep separate credentials and configuration for each environment. Make the API
+base URL an environment variable so production cannot be selected accidentally:
+
+```bash
+BILLIONS_API_URL=https://api-sandbox.billions.works
+BILLIONS_API_KEY=your-sandbox-api-key
+```
 
 ## Keep credentials server-side
 
 Never embed the API key in browser code, a mobile application, a public
 repository, or logs. Load it from a secret manager or environment variable.
 
+For signed money operations and optional webhook signature verification, also
+store the original API key secret. It is displayed only once when the API key
+is created and must be treated as a server-side secret.
+
 ```bash
-BILLIONS_API_KEY=your-api-key
+BILLIONS_API_SECRET=your-api-key-secret
 ```
 
 ## Define two identifiers
@@ -42,10 +62,6 @@ stable and use a new idempotency key for each intentional attempt.
   Do not reuse one key for unrelated orders.
 </Warning>
 
-## Information still required
-
-<Note>
-  TODO: Add the dashboard URL, instructions for creating an API key, available
-  environments, and the definitive list of supported invoice currencies.
-</Note>
+Use the [public currencies endpoint](/api/overview#discover-the-api) instead of
+hard-coding a currency list.
 

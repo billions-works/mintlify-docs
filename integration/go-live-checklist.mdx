@@ -8,6 +8,8 @@ icon: "rocket"
 
 - [ ] Production API credentials are stored in secret storage.
 - [ ] The production API host and version are configured.
+- [ ] Sandbox and production credentials are stored separately.
+- [ ] The production deployment cannot accidentally use the sandbox host.
 - [ ] The callback URL is public and uses HTTPS.
 - [ ] No credentials or sensitive payloads are written to logs.
 
@@ -23,6 +25,7 @@ icon: "rocket"
 
 - [ ] Callback fields are not trusted as proof of payment.
 - [ ] Invoice state is retrieved from the authenticated API.
+- [ ] Webhook signature verification, when enabled, uses RFC 8785 JCS and the original API key secret.
 - [ ] Duplicate callbacks do not duplicate fulfillment.
 - [ ] Network timeouts and temporary failures are retried safely.
 - [ ] Monitoring alerts on repeated callback or API failures.
@@ -37,9 +40,12 @@ icon: "rocket"
 - [ ] Delayed payment confirmation
 - [ ] API timeout during invoice creation
 - [ ] API timeout during callback verification
+- [ ] Invalid or missing webhook signature
+- [ ] Signed money-operation retry with the same request ID
+- [ ] Reused request ID with different operation data returns `409`
 
 <Note>
-  TODO: Add production support contacts, status page, rate limits, and the
-  environment-switching procedure.
+  Add your production support contacts, status-page monitoring, and internal
+  environment-switching procedure before launch.
 </Note>
 
