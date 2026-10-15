@@ -1,0 +1,93 @@
+---
+title: "BILLmanager"
+description: "Install and configure the official Billions payment module for BILLmanager 6."
+icon: "server"
+---
+
+The official Billions module adds a payment method to BILLmanager 6. It creates
+invoices through the Billions Public API and sends customers to the hosted
+payment page.
+
+<Card
+  title="BILLmanager module on GitHub"
+  icon="github"
+  href="https://github.com/billions-works/billions-payments-for-billmanager"
+  cta="View repository"
+>
+  Browse installation packages, source code, releases, and issues.
+</Card>
+
+## Requirements
+
+- BILLmanager 6 on a supported Linux host.
+- PHP CLI 7.4 or newer with XML/SimpleXML and mbstring.
+- A valid CA trust store and outbound HTTPS access to `api.billions.works`.
+- A publicly reachable HTTPS callback endpoint at
+  `https://<your-billing-host>/mancgi/billionsresult.php`.
+- A Billions Public API key kept on the BILLmanager server.
+
+## Install the module
+
+Download the package matching your host from the
+[latest GitHub release](https://github.com/billions-works/billions-payments-for-billmanager/releases/latest).
+The packages contain PHP code and are architecture-independent.
+
+| Host OS | Package | Installation command |
+| --- | --- | --- |
+| Ubuntu 20.04 | `billions-billmanager-ubuntu20.deb` | `sudo apt install ./billions-billmanager-ubuntu20.deb` |
+| Ubuntu 24.04 | `billions-billmanager-ubuntu24.deb` | `sudo apt install ./billions-billmanager-ubuntu24.deb` |
+| Debian 12 | `billions-billmanager-debian12.deb` | `sudo apt install ./billions-billmanager-debian12.deb` |
+| Debian 13 | `billions-billmanager-debian13.deb` | `sudo apt install ./billions-billmanager-debian13.deb` |
+| Enterprise Linux 9 | `billions-billmanager-el9.noarch.rpm` | `sudo dnf install ./billions-billmanager-el9.noarch.rpm` |
+
+Run the matching command in the directory containing the downloaded package.
+If the new payment method does not appear after installation, restart
+BILLmanager.
+
+## Configure the payment method
+
+Create a Billions payment method in BILLmanager and fill in these fields:
+
+| Field | Value |
+| --- | --- |
+| Public API key | The merchant `apiKey` issued by Billions. It stays on the server. |
+| Unique BILLmanager instance ID | A stable identifier of 3–30 ASCII letters, digits, underscores, or hyphens. Use a different ID for each installation sharing one API key. |
+| Public HTTPS origin of BILLmanager | For example, `https://billing.example.com`, without a path or trailing slash. |
+| Billions API origin | Optional. Leave empty for `https://api.billions.works`; use a configured test environment only when testing. |
+
+The module sends callbacks to
+`<public HTTPS origin>/mancgi/billionsresult.php?elid=<payment-id>`.
+The instance ID is part of the invoice idempotency key; keep it unchanged after
+the first payment. Enable the currencies supported by your merchant account.
+USD and EUR can be invoice currencies, while the customer chooses an available
+payment currency on the Billions checkout page.
+
+<Note>
+  For sandbox testing, set the API origin to
+  `https://api-sandbox.billions.works` and use sandbox credentials. Restore the
+  production origin and credentials before accepting live payments.
+</Note>
+
+## Payment confirmation
+
+The module creates an invoice with stable `order_no` and `idempotencyKey`
+values derived from the BILLmanager instance, payment method, and payment ID.
+Opening the payment page again reuses the stored invoice.
+
+When a callback arrives, the module retrieves the invoice from the
+authenticated Billions API. It compares the invoice ID, order number, amount,
+and settlement currency with the original payment before updating BILLmanager.
+The callback body and a customer's return from checkout are not payment proof.
+This flow needs the API key but does not require the API `secretKey`.
+
+- `completed` marks the payment paid.
+- `processing` marks it in progress.
+- `expired` or `failed` leaves it unpaid.
+
+Test a small payment before enabling the method for customers. If a payment
+remains unresolved after a missed notification, reconcile it against the
+Billions dashboard.
+
+## Current limitations
+
+The module does not implement subscriptions or refunds.

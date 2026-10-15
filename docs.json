@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Billions",
-  "description": "Integrate Billions payments into your application or online store.",
+  "description": "Integrate Billions payments into your application, store, or billing platform.",
   "logo": {
     "light": "/logo/logo-black.svg",
     "dark": "/logo/logo-white.svg",
@@ -104,10 +104,11 @@
             ]
           },
           {
-            "group": "Store integrations",
+            "group": "Platform integrations",
             "pages": [
               "store-integrations/overview",
-              "store-integrations/woocommerce"
+              "store-integrations/woocommerce",
+              "store-integrations/billmanager"
             ]
           }
         ]
