@@ -1,0 +1,137 @@
+---
+title: "Tilda"
+description: "Configure Billions as a Tilda Custom Payment Gateway for internal testing."
+icon: "cart-shopping"
+---
+
+This guide covers the current **internal test** integration with Tilda's
+[Custom Payment Gateway](https://help.tilda.cc/payments/custom-payment-gateway).
+The test endpoint is:
+
+```text
+https://api-test.billions.works/integrations/tilda/create
+```
+
+The production endpoint at
+`https://api.billions.works/integrations/tilda/create` currently returns `404`.
+Do not switch a live Tilda store to this integration yet. Tilda may also require
+the custom gateway template to be enabled or approved for your project.
+
+## 1. Create test credentials
+
+In your Billions test account, open **Settings → API**, create an API key, and
+save both values when they are issued:
+
+| Billions credential | Tilda field |
+| --- | --- |
+| `API key` UUID | **Login** |
+| Original `Secret key` issued with that API key | **Secret for order signature** |
+
+Use the API key UUID in **Login**, not your Billions merchant ID. The secret is
+shown once when the key is created. Its hash, a webhook signature, or a
+signature from one order cannot replace it. Keep it out of URLs, browser code,
+and messages. This test integration currently uses a regular Billions API key.
+
+## 2. Create a Tilda gateway
+
+Open your Tilda site and go to **Site Settings → Payment Systems → Custom
+Payment Gateway → New payment system (for developers)**. If your project does
+not show this option, follow Tilda's
+[custom gateway approval process](https://help.tilda.cc/payments/custom-payment-gateway).
+
+| Tilda field | Value |
+| --- | --- |
+| Login | The Billions test API key UUID |
+| Secret for order signature | The original secret from that same API key |
+| Currency | `USD` or `EUR` |
+| Country and widget language | Set only when needed; use a real supported country |
+| Title | For example, `Billions.works` |
+
+The site's cart currency must match the gateway currency. Changing the cart
+currency affects the **entire Tilda site**, not just a test page. Configure
+electronic receipts according to your merchant's jurisdiction.
+
+## 3. Map the order fields
+
+In **Advanced settings**, set **API URL** to the test endpoint above and use
+this field mapping:
+
+| Tilda field | Billions parameter | Setting |
+| --- | --- | --- |
+| Login | `merchant` | Required; API key UUID |
+| Currency | `currency` | `USD` or `EUR` |
+| Language | `lang` | Optional; uppercase |
+| Country | `country` | Optional; uppercase |
+| Notification URL | `url_callback` | Required |
+| Order number | `order_id` | `<project ID>_<order ID>` |
+| Order description | `description` | Optional |
+| Order amount | `amount` | Dollars or euros, not cents; at most two decimal places |
+| Customer email | `email` | Optional |
+| Customer name | `name` | Optional |
+| Signature | `sign` | Required |
+| Products | `items` | One JSON array value; item fields include `name`, `quantity`, and `price` |
+
+Order time, phone number, image, and additional fields may be left blank when
+not needed. `url_return` is optional. Map Tilda's generated **Notification URL**
+to `url_callback`; Tilda then sends it with each order, so it does not need to
+be copied into your Billions dashboard.
+
+<Note>
+  The current endpoint accepts form fields and redirects to the Billions test
+  checkout after a valid order. A repeated order with the same key, amount,
+  currency, and callback reuses its invoice. Changing those values for the
+  same order returns `409`.
+</Note>
+
+## 4. Configure the order signature
+
+In Tilda's **Order signature** settings, select:
+
+| Setting | Value |
+| --- | --- |
+| Signature rules | All fields |
+| Excluded fields | `signature` (excluded by Tilda) and `sign` |
+| Ignore fields with empty values | On |
+| Field order | Alphabetical, ascending |
+| Delimiter | Vertical bar |
+| Add secret | First element |
+| Algorithm | MD5 |
+| HMAC, uppercase digest, Base64 | Off |
+
+Billions excludes `sign` and `signature`, sorts the remaining non-empty field
+names, joins their values with `|` after the secret, and compares the lowercase
+MD5 digest. Every additional non-empty field participates in the signature.
+See [Tilda's signature configuration guide](https://help.tilda.cc/payments/custom-payment-gateway).
+
+## 5. Configure the payment notification
+
+In Tilda's **Notification** settings, use the same signature rules as the
+order and set:
+
+| Setting | Value |
+| --- | --- |
+| Successful payment indicator | Field `status`, value `paid` |
+| Transaction ID | Field `payment_id`, type UUID |
+| Successful processing response | `OK` |
+| Error response | `ERROR` |
+| Responses in JSON format | Off |
+
+Use `payment_id`, **not** `uuid`: the current Billions notification sends the
+invoice ID as `payment_id`. The notification is form-encoded and signed using
+the same secret. Tilda marks the order paid only after receiving a valid
+notification with the expected order number, amount, and status. A customer
+returning from the checkout page does not confirm payment.
+
+## 6. Run a test order
+
+Publish a test page with a product and shopping cart, then place a small
+order. The customer should be redirected to a page on
+`test-pay.billions.works`. After completing the test payment, open **Tilda →
+Leads → Order details → Payment** and confirm that the order is marked paid.
+See [Tilda's guide to leads and orders](https://help.tilda.cc/leads).
+
+Before broader use, compare the actual Tilda POST and notification against the
+configured field mapping and signature rules. In particular, confirm how
+`items` is serialized: the current endpoint accepts one field value and
+rejects repeated fields. Also test an invalid signature, changed amount or
+currency, duplicate orders, expired invoices, and notification retries.

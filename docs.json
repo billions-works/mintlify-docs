@@ -108,7 +108,8 @@
             "pages": [
               "store-integrations/overview",
               "store-integrations/woocommerce",
-              "store-integrations/billmanager"
+              "store-integrations/billmanager",
+              "store-integrations/tilda"
             ]
           }
         ]
