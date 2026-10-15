@@ -109,6 +109,7 @@
               "store-integrations/overview",
               "store-integrations/woocommerce",
               "store-integrations/billmanager",
+              "store-integrations/whmcs",
               "store-integrations/tilda"
             ]
           }

@@ -1,0 +1,94 @@
+---
+title: "WHMCS"
+description: "Install and configure the official Billions payment gateway for WHMCS."
+icon: "server"
+---
+
+The official Billions gateway adds hosted checkout to WHMCS. Customers select
+**Pay Now** on a WHMCS invoice and complete their payment on a Billions-hosted
+page.
+
+<Card
+  title="WHMCS module on GitHub"
+  icon="github"
+  href="https://github.com/billions-works/billions-payments-for-WHMCS"
+  cta="View repository"
+>
+  Find the installation package, source code, and release notes.
+</Card>
+
+## Requirements
+
+- A currently supported WHMCS version running on PHP 8.2 or 8.3 with the cURL
+  extension.
+- A Billions Public API key stored on the WHMCS server.
+- A public HTTPS **WHMCS System URL**, including its subdirectory if it has one.
+- Outbound HTTPS access from WHMCS to `https://api.billions.works` and a
+  publicly reachable gateway callback URL.
+- Invoice currencies accepted by your Billions merchant account. USD and EUR
+  can be invoice currencies.
+
+## Install the module
+
+1. Download the [latest module ZIP](https://github.com/billions-works/billions-payments-for-WHMCS/releases/latest/download/billions-payments-for-whmcs.zip).
+2. Extract it into the **root directory of your WHMCS installation**. The
+   package installs only these files:
+
+   ```text
+   modules/gateways/billions.php
+   modules/gateways/billions/Client.php
+   modules/gateways/callback/billions.php
+   ```
+
+3. In WHMCS, open **System Settings → Payment Gateways** and activate
+   **Billions.works**.
+
+## Configure the gateway
+
+| WHMCS setting | Value |
+| --- | --- |
+| Public API key | The API key issued by Billions. WHMCS stores it in a masked password field; keep it server-side. |
+| Unique WHMCS instance ID | A stable ID of 3–30 ASCII letters, digits, underscores, or hyphens. Use a different ID for each installation sharing a merchant account. |
+
+Do not change the instance ID after accepting payments. It contributes to
+stable invoice identifiers and idempotency keys.
+
+Set the **WHMCS System URL** to its public HTTPS address, including any
+subdirectory. For example, if WHMCS runs at
+`https://billing.example.com/whmcs/`, Billions sends notifications to:
+
+```text
+https://billing.example.com/whmcs/modules/gateways/callback/billions.php?invoiceid=<id>
+```
+
+Ensure that this callback URL is reachable from the internet. Enable only
+currencies supported by your Billions merchant account.
+
+## How payment confirmation works
+
+The gateway creates a Billions invoice when the customer selects **Pay Now**.
+Its stable `order_no` and `idempotencyKey` prevent a new invoice from being
+created whenever the WHMCS invoice page is reopened. If the WHMCS invoice
+amount changes after its Billions invoice is created, the gateway refuses to
+reuse the old payment link; an administrator must reconcile the payment.
+
+When a notification arrives, the gateway **retrieves the invoice from the
+authenticated Billions API**. It checks the order number, currency, amount,
+selected payment gateway, and current WHMCS balance before applying a verified
+`completed` payment. Other Billions statuses leave the WHMCS invoice unpaid.
+The callback body and a customer's return from checkout are not payment proof.
+This verification flow uses the API key and does not require an HMAC secret.
+
+Test the checkout and callback with a small payment before enabling the gateway
+for customers. If a notification cannot be verified, the callback returns a
+non-success HTTP response. Reconcile missed payments in the Billions dashboard.
+
+## Current limitations
+
+- Subscriptions and automatic refunds are not implemented.
+- The Public API does not currently provide a checkout return URL for this
+  gateway. Customers should return to WHMCS manually to view the updated
+  invoice.
+
+For the latest installation details, see the
+[module README](https://github.com/billions-works/billions-payments-for-WHMCS#installation).
