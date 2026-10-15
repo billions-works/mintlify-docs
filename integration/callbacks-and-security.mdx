@@ -163,6 +163,11 @@ The API key secret is used as UTF-8 text, not as hex-decoded bytes. It is the
 original `secretKey` displayed once when the API key was created. Reissue older
 API keys that do not have a signing secret.
 
+The official [TypeScript](/sdks/typescript#verify-a-webhook-signature),
+[Python](/sdks/python#verify-a-webhook-signature), and
+[PHP](/sdks/php#verify-a-webhook-signature) SDKs provide this JCS verification
+method. Use the examples below when handling signatures without an SDK.
+
 ### Verify in TypeScript / Node.js
 
 Install an RFC 8785 implementation with `npm install canonicalize`:

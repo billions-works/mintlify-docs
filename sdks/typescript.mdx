@@ -26,12 +26,14 @@ import { BillionsApi } from '@billions-works/sdk-ts';
 
 const api = new BillionsApi({
   apiKey: process.env.BILLIONS_API_KEY!,
+  webhookSecret: process.env.BILLIONS_API_SECRET,
   baseUrl: process.env.BILLIONS_API_URL,
 });
 ```
 
 Use `BILLIONS_API_URL=https://api-sandbox.billions.works` for testing. Omit
-`baseUrl` to use production.
+`baseUrl` to use production. `webhookSecret` is the original `secretKey` issued
+with the API key; it is needed only when verifying webhook signatures.
 
 ## Create an invoice
 
@@ -52,12 +54,38 @@ console.log(invoice.invoice_url);
 ```ts
 const version = await api.getVersion();
 const currencies = await api.getCurrencies();
+const countries = await api.getCountries();
+const fees = await api.estimateFees({ currency: 'USDT', amount: '100' });
 const invoice = await api.getInvoice('invoice-id');
 const invoices = await api.getInvoicesByOrder('ORDER-1001');
-const verifiedInvoice = await api.verifyInvoicePaid(callbackData);
+const currentInvoice = await api.getInvoiceFromWebhook(webhook);
+const verifiedInvoice = await api.verifyInvoicePaid(webhook);
 ```
 
-Invoice objects include `invoice_url`, `order_no`, `expires_at`, and `status`.
+`getCountries()` returns country codes and names. `estimateFees()` returns
+`amount`, `finalPrice`, `fee`, and `merchantReceiveAmount`; `summaryFee` may
+also be present. Invoice objects include `invoice_url`, `order_no`,
+`expires_at`, `network_and_other_fees`, and `status`.
+
+## Verify a webhook signature
+
+Pass the received `X-Billions-Signature` header and JSON body to the SDK:
+
+```ts
+const signature = String(request.headers['x-billions-signature'] ?? '');
+const valid = await api.verifyWebhookSignature(signature, request.body);
+
+if (!valid) return response.sendStatus(401);
+
+// Always retrieve the current invoice before changing the order.
+const invoice = await api.getInvoiceFromWebhook(request.body);
+```
+
+The body may be the raw JSON text, UTF-8 bytes, or an already parsed object.
+The SDK canonicalizes the JSON according to RFC 8785 JCS, then verifies its
+HMAC-SHA256 signature using `webhookSecret`. It accepts both the full
+`jcs-sha256=<hex>` header and a plain hex digest. A valid signature does not
+replace the authenticated invoice lookup.
 
 ## Verify a payment callback
 
@@ -72,11 +100,7 @@ import {
 } from '@billions-works/sdk-ts';
 
 try {
-  const invoice = await api.verifyInvoicePaid({
-    id: callback.id,
-    status: callback.status,
-    paid_amount: callback.paid_amount,
-  });
+  const invoice = await api.verifyInvoicePaid(webhook);
 
   // Transition invoice.order_no to paid exactly once.
 } catch (error) {
@@ -89,13 +113,12 @@ try {
 }
 ```
 
+`verifyInvoicePaid()` accepts the current webhook envelope as well as legacy
+callback objects. For intermediate events, use `getInvoiceFromWebhook()` and
+base any order state change on the API response.
+
 ## Handle errors
 
 Wrap API calls in `try/catch`, log a correlation identifier instead of secrets,
 and retry only operations that are safe to repeat. Reuse the same idempotency key
 when retrying the same invoice creation.
-
-<Note>
-  TODO: Add the remaining constructor options, complete method reference, and
-  supported runtime matrix.
-</Note>

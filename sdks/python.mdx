@@ -32,7 +32,11 @@ import os
 
 from billions_sdk import BillionsApi
 
-with BillionsApi(os.environ["BILLIONS_API_KEY"]) as api:
+with BillionsApi(
+    os.environ["BILLIONS_API_KEY"],
+    base_url=os.getenv("BILLIONS_API_URL"),
+    webhook_secret=os.getenv("BILLIONS_API_SECRET"),
+) as api:
     invoice = api.create_invoice(
         {
             "currency": "USDT",
@@ -61,25 +65,47 @@ async with AsyncBillionsApi(os.environ["BILLIONS_API_KEY"]) as api:
 
 ## Available methods
 
-Both clients expose the same methods. Await them when using
-`AsyncBillionsApi`.
+Both clients expose the same methods. On `AsyncBillionsApi`, await HTTP
+operations; signature verification is synchronous.
 
 ```python
 api.get_version()
 api.get_currencies()
+api.get_countries()
 api.get_merchant_info()
 api.estimate_fees(payload)
 api.create_invoice(payload)
 api.get_invoice(invoice_id)
 api.get_invoices_by_order_no(order_no)
 api.get_invoice_from_webhook(webhook)
+api.verify_webhook_signature(signature_header, raw_body)
 api.verify_invoice_paid(invoice_id, callback_data)
 api.verify_invoice_paid(callback_data_with_id)
 ```
 
+`get_countries()` returns country codes and names. `estimate_fees()` returns
+`amount`, `finalPrice`, `fee`, and `merchantReceiveAmount`, with optional
+`summaryFee`.
+
 The default API host is `https://api.billions.works`, and the default public API
 version is `v1`. You can override both or inject a custom `httpx.Client` or
 `httpx.AsyncClient`.
+
+## Verify a webhook signature
+
+```python
+if not api.verify_webhook_signature(signature_header, raw_body):
+    raise ValueError("Invalid webhook signature")
+
+invoice = api.get_invoice_from_webhook(webhook)
+```
+
+Set `webhook_secret` to the original API `secretKey` when creating the client.
+The method parses JSON text or bytes, canonicalizes it according to RFC 8785
+JCS, and verifies HMAC-SHA256. It accepts `jcs-sha256=<hex>` or a plain hex
+digest. On `AsyncBillionsApi`, `get_invoice_from_webhook()` must be awaited.
+Use the authenticated invoice response for payment decisions even when the
+signature is valid.
 
 ## Process webhook events
 

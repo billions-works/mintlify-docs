@@ -32,7 +32,8 @@ For sandbox testing, configure the SDK base URL as
 
 The SDKs preserve public API field names such as `order_no`, `invoice_url`, and
 `expires_at`. All support idempotent invoice creation and invoice lookup by
-order number.
+order number. They also provide country lookup, invoice fee estimates, webhook
+signature verification, and authenticated invoice retrieval from a webhook.
 
 Choose the SDK matching your backend runtime. API keys must never be used in
 frontend or mobile client code.

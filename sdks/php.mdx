@@ -30,7 +30,11 @@ require 'vendor/autoload.php';
 
 use Billions\BillionsApi;
 
-$api = new BillionsApi($_ENV['BILLIONS_API_KEY']);
+$api = new BillionsApi(
+    apiKey: $_ENV['BILLIONS_API_KEY'],
+    baseUrl: $_ENV['BILLIONS_API_URL'] ?? null,
+    webhookSecret: $_ENV['BILLIONS_API_SECRET'] ?? null,
+);
 ```
 
 You can also provide a custom host, API version, or Guzzle client:
@@ -49,17 +53,44 @@ $api = new BillionsApi(
 ```php
 $api->getVersion();
 $api->getCurrencies();
+$api->getCountries();
 $api->getMerchantInfo();
 $api->estimateFees($payload);
 $api->createInvoice($payload);
 $api->getInvoice($invoiceId);
 $api->getInvoicesByOrderNo($orderNo);
+$api->getInvoiceFromWebhook($webhook);
+$api->verifyWebhookSignature($signatureHeader, $rawBody);
 $api->verifyInvoicePaid($invoiceId, $callbackData);
 $api->verifyInvoicePaid($callbackDataWithId);
 ```
 
 API objects are returned as associative arrays with field names matching the
 public API JSON.
+
+`getCountries()` returns country codes and names. `estimateFees()` returns
+`amount`, `finalPrice`, `fee`, and `merchantReceiveAmount`, with optional
+`summaryFee`.
+
+## Verify a webhook signature
+
+```php
+$rawBody = file_get_contents('php://input');
+$signature = $_SERVER['HTTP_X_BILLIONS_SIGNATURE'] ?? '';
+
+if (!$api->verifyWebhookSignature($signature, $rawBody)) {
+    http_response_code(401);
+    exit;
+}
+
+$webhook = json_decode($rawBody, true, 512, JSON_THROW_ON_ERROR);
+$invoice = $api->getInvoiceFromWebhook($webhook);
+```
+
+Set `webhookSecret` to the original API `secretKey`. The SDK parses the JSON,
+canonicalizes it according to RFC 8785 JCS, and verifies HMAC-SHA256 with a
+timing-safe comparison. It accepts the full `jcs-sha256=<hex>` header or a
+plain hex digest. Always use the retrieved invoice for payment decisions.
 
 ## Errors
 

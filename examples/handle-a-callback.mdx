@@ -14,7 +14,7 @@ does not replace the API lookup.
 ```ts TypeScript
 try {
   const webhook = request.body;
-  const invoice = await api.getInvoice(webhook.data.invoice_id);
+  const invoice = await api.getInvoiceFromWebhook(webhook);
 
   // Deduplicate deliveries using webhook.webhook_id.
   // Update intermediate state when useful.
@@ -43,7 +43,7 @@ except Exception:
 
 try {
     $webhook = json_decode(file_get_contents('php://input'), true, 512, JSON_THROW_ON_ERROR);
-    $invoice = $api->getInvoice($webhook['data']['invoice_id']);
+    $invoice = $api->getInvoiceFromWebhook($webhook);
 
     // Deduplicate deliveries using $webhook['webhook_id'].
     // Update intermediate state when useful.
@@ -65,6 +65,8 @@ curl --request GET \
 To authenticate the callback before this lookup, verify
 `X-Billions-Signature` as described in
 [Callbacks and security](/integration/callbacks-and-security#webhook-signature).
+The official SDKs now provide `verifyWebhookSignature()` in TypeScript and
+PHP, and `verify_webhook_signature()` in Python.
 
 <Warning>
   Add callback schema validation, order matching, and transactional idempotency
