@@ -1,12 +1,12 @@
 ---
-title: "Cryptomus-compatible API"
-description: "Connect existing Cryptomus SDKs and payment modules to Billions."
+title: "Unified Merchant API"
+description: "Connect existing merchant-style SDKs and payment modules to Billions."
 icon: "plug"
 ---
 
-The compatibility API lets an existing Cryptomus payment integration create
-Billions invoices with limited changes to its configuration. Use this path if
-your application or store already has a Cryptomus SDK or module. For a new
+The Unified Merchant API lets an existing payment integration create Billions
+invoices with limited changes to its configuration. Use this path if your
+application or store already has a compatible SDK or module. For a new
 integration, use the [Billions Public API](/api/overview) or an
 [official Billions SDK](/sdks/overview).
 
@@ -19,7 +19,7 @@ integration, use the [Billions Public API](/api/overview) or an
     only once. Keep it on your server.
   </Step>
   <Step title="Change the API base URL">
-    Replace the Cryptomus API base URL inside the SDK or module with
+    Replace the existing API base URL inside the SDK or module with
     `https://compatibility-cm.billions.works`. Keep the module's `/v1/...`
     endpoint paths. If its configuration contains a full URL ending in `/v1`,
     use `https://compatibility-cm.billions.works/v1` instead.
@@ -35,7 +35,7 @@ integration, use the [Billions Public API](/api/overview) or an
   </Step>
 </Steps>
 
-| Cryptomus field | Billions value |
+| Existing integration field | Billions value |
 | --- | --- |
 | Merchant UUID | `apiKey` — the API key UUID, not the Billions merchant's internal ID |
 | Payment API Key / Secret | `secretKey` issued together with that `apiKey` |
@@ -52,17 +52,13 @@ code, URLs, and logs.
 
 ## SDKs and modules
 
-The [Cryptomus PHP SDK](https://github.com/CryptomusCom/api-php-sdk) can use
-this API for the supported payment methods when its API base URL is changed.
-The community TypeScript package
-[`cryptomus-js`](https://github.com/0xJord4n/cryptomus-js) has also been used
-with the compatibility host by overriding its payment client's `baseUrl`;
-that package does not expose a stable base URL option, so check this override
-when updating it.
+Compatible PHP SDKs can use this API for supported payment methods when their
+API base URL is configurable. Some community TypeScript clients require
+overriding the payment client's `baseUrl` instead; check whether that override
+still works when updating the package.
 
-The [Cryptomus module catalog](https://doc.cryptomus.com/sdks-and-modules/modules)
-lists modules for these platforms. They can be considered for this compatibility
-path when their API URL can be changed and their checkout uses the supported
+Payment modules for the following platforms can be considered for this path
+when their API URL can be changed and their checkout uses the supported
 payment methods:
 
 - **Stores:** WooCommerce, PrestaShop, OpenCart, Magento, BigCommerce, CS-Cart,
@@ -72,8 +68,8 @@ payment methods:
 - **Other platforms:** XenForo, Tilda, Azuriom, Invision Community, Watbot.
 
 Module versions and the methods they call vary. This list identifies the
-available Cryptomus modules, **not** a guarantee that every module and feature
-works unchanged. In particular, modules that require static wallets, refunds,
+available modules, **not** a guarantee that every module and feature works
+unchanged. In particular, modules that require static wallets, refunds,
 mark-as-paid, or webhook resend need additional support beyond the current
 compatibility API. For WooCommerce, you can alternatively use the
 [official Billions plugin](/store-integrations/woocommerce). For BILLmanager 6,
@@ -91,13 +87,13 @@ WHMCS, use the [official Billions gateway](/store-integrations/whmcs).
 | `POST` | `/v1/payment/services` | List available payment currencies and networks |
 | `POST` | `/v1/payment/qr` | Get a QR image for an invoice with a payment address |
 
-These endpoints use Cryptomus-style `merchant` and `sign` headers. The `sign`
-value is the lowercase MD5 hex digest of the Base64-encoded **exact JSON body
+These endpoints use `merchant` and `sign` headers. The `sign` value is the
+lowercase MD5 hex digest of the Base64-encoded **exact JSON body
 bytes** followed by `secretKey`. It differs from the RFC 8785/HMAC signature
-used by [Billions signed money operations](/api/request-signing). Existing
-Cryptomus SDKs and modules usually calculate this signature themselves.
+used by [Billions signed money operations](/api/request-signing). Compatible
+SDKs and modules usually calculate this signature themselves.
 
-Invoices created here send Cryptomus-style callbacks to `url_callback` when
+Invoices created here send compatible callbacks to `url_callback` when
 provided. Their `sign` is in the JSON body, and their format differs from
 [Billions-native webhooks](/integration/callbacks-and-security). Verify and
 process them according to the module's callback flow.
@@ -105,3 +101,5 @@ process them according to the module's callback flow.
 This is a partial payment API compatibility layer. Refunds, static wallets,
 mark-as-paid, webhook resend, and payout methods are not implemented in this
 API. Unsupported request options are rejected explicitly.
+
+<small>Commonly used by several merchants like Cryptomus and Helekat.</small>

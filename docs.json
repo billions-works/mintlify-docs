@@ -73,7 +73,7 @@
               "integration/overview",
               "integration/prerequisites",
               "integration/payment-flow",
-              "integration/cryptomus-compatibility",
+              "integration/unified-merchant-api",
               "integration/callbacks-and-security",
               "integration/go-live-checklist"
             ]
@@ -123,6 +123,12 @@
       }
     ]
   },
+  "redirects": [
+    {
+      "source": "/integration/cryptomus-compatibility",
+      "destination": "/integration/unified-merchant-api"
+    }
+  ],
   "footer": {
     "socials": {
       "github": "https://github.com/billions-works"
