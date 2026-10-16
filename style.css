@@ -117,7 +117,7 @@ toc-item[data-active-deepest] {
 }
 
 /* Keep the compatibility attribution visible but understated in both themes. */
-html[data-current-path$="/integration/unified-merchant-api"] #content p:has(> em:only-child) {
+html[data-current-path$="/integration/unified-merchant-api"] #content [data-as="p"]:has(> em:only-child) {
   color: var(--billions-muted);
   font-size: 0.75rem;
 }
