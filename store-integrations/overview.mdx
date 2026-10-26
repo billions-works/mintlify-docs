@@ -7,6 +7,12 @@ icon: "store"
 Platform integrations package invoice creation, customer redirection, and
 payment verification for a store or billing system.
 
+WooCommerce and WHMCS modules currently connect to production only; they do
+not have a sandbox API-host setting. BILLmanager is different: its API origin
+can be set to the [sandbox host](/store-integrations/billmanager#configure-the-payment-method)
+with sandbox credentials. For a custom integration, see
+[sandbox testing](/integration/sandbox-testing).
+
 <CardGroup cols={2}>
   <Card title="WooCommerce" icon="wordpress" href="/store-integrations/woocommerce">
     Accept Billions payments in Classic Checkout and WooCommerce Checkout Blocks.

@@ -98,6 +98,15 @@ provided. Their `sign` is in the JSON body, and their format differs from
 [Billions-native webhooks](/integration/callbacks-and-security). Verify and
 process them according to the module's callback flow.
 
+<Warning>
+  Do not mix the two callback protocols. The Unified Merchant API uses a
+  lowercase MD5 `sign` in the callback JSON body and the `url_callback` field
+  when creating an invoice. The native Public API uses `callbackUrl` and can
+  send `X-Billions-Signature` using RFC 8785 JCS and HMAC-SHA256. A verifier
+  for one protocol does not authenticate the other. In either case, retrieve
+  the current invoice from the authenticated API before fulfillment.
+</Warning>
+
 This is a partial payment API compatibility layer. Refunds, static wallets,
 mark-as-paid, webhook resend, and payout methods are not implemented in this
 API. Unsupported request options are rejected explicitly.

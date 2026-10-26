@@ -1,0 +1,41 @@
+---
+title: "Test in sandbox"
+description: "Check invoice creation and callbacks without accidentally using production."
+icon: "flask"
+---
+
+Sandbox and production have separate API hosts and credentials. For a custom
+integration, test against `https://api-sandbox.billions.works` before switching
+to production. This page describes **how to run the test**; it does not claim
+that a payment has been completed for your own integration.
+
+## Test your integration
+
+1. [Sign in to the Billions app](https://app.billions.works), switch to
+   **Sandbox**, and create a sandbox API key under **Settings → API**.
+2. Configure your backend with the sandbox API URL and sandbox key. Keep both
+   explicit; the [TypeScript SDK](/sdks/typescript) defaults to production if
+   `baseUrl` is omitted.
+3. Make your callback endpoint reachable over HTTPS. Create an invoice with a
+   unique `order_no`, a stable `idempotencyKey`, a small supported amount, and
+   `callbackUrl`. Store the returned `id` and `expires_at`.
+4. Open the returned `invoice_url`. The app's Sandbox **Demo Shop** offers a
+   separate checkout smoke test, but its invoice is not a test of your own
+   callback handler.
+5. Complete the checkout using a sandbox-supported payment method available
+   to your account. Check the invoice again with
+   `GET /public/v1/invoices/{id}` and verify that your callback was received.
+   Fulfill only when that authenticated response returns `completed`.
+6. Repeat with duplicate callbacks, an abandoned checkout, expiration, and
+   an API timeout. Verify that no test can create duplicate fulfillment.
+
+<Warning>
+  The Public API does not document a universal "simulate paid" endpoint or a
+  guaranteed fake payment method. Opening a checkout page or using Demo Shop
+  alone does not prove that your integration completes a paid transaction. If
+  your account has no available sandbox payment path, ask Billions support for
+  a test method and record the end-to-end paid test as **not verified**.
+</Warning>
+
+See the [go-live checklist](/integration/go-live-checklist) before replacing
+the sandbox host and credentials with production values.

@@ -1,0 +1,68 @@
+---
+title: "Create an invoice API"
+description: "Request and response fields for the public invoice-creation endpoint."
+icon: "file-invoice"
+---
+
+Create an invoice with `POST /public/v1/invoices/create` on the
+[sandbox or production API host](/integration/prerequisites#choose-an-environment).
+Send JSON with `Content-Type: application/json` and your server-side API key in
+the `x-api-key` header. The [sandbox OpenAPI schema](https://api-sandbox.billions.works/public/v1/swagger.json)
+is the source of truth for the deployed field types and required fields.
+
+## Request body
+
+Only `currency` and `amount` are required by the current OpenAPI schema.
+`idempotencyKey`, `order_no`, and `callbackUrl` are strongly recommended for a
+reliable store integration.
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `currency` | string | Yes | Invoice currency code. Use the [currencies endpoint](/api/overview#endpoints) to discover supported values. A code such as `USDT` may be mapped to a network-specific internal ticker. |
+| `amount` | number or string | Yes | Requested amount in major units; must be greater than zero. Prefer a decimal string in your own order records. |
+| `idempotencyKey` | string | No | Stable key for retries of the same logical creation attempt. Use a new key for an intentional new attempt. |
+| `type` | `b2b` or `b2c` | No | Invoice type; defaults to `b2c`. |
+| `order_no` | string | No | Your stable business order reference. Keep it across payment attempts for the same order. |
+| `description` | string | No | Description shown with the invoice where supported. |
+| `autoconvert` | string | No | Supported currency code without a network suffix for automatic conversion. |
+| `callbackUrl` | HTTP or HTTPS URL string | No | Your notification endpoint. It must be publicly reachable for live callback delivery. |
+| `success_url` | HTTP or HTTPS URL string | No | Optional customer redirect URL after a successful checkout. A redirect is not proof of payment. |
+| `return_url` | HTTP or HTTPS URL string | No | Optional customer return URL. A return is not proof of payment. |
+| `fail_url` | HTTP or HTTPS URL string | No | Optional customer redirect URL after an unsuccessful checkout. |
+| `expiresAt` | date-time string | No | Requested expiration time. If omitted, the current backend defaults to two hours after creation. Always use the returned `expires_at` as the authoritative deadline. |
+
+Unknown fields are not part of the published OpenAPI schema. For example,
+`callbackUrl` uses camel case while `order_no` and the redirect URL fields use
+underscores. Follow the schema exactly rather than converting every key to one
+naming convention.
+
+## Response fields to persist and compare
+
+The response includes `id`, `invoice_url`, `status`, `order_no`, `amount`,
+`settlement_currency`, `currency`, and `expires_at`, as well as fees, payment
+totals, and optional redirect URLs. Store the invoice ID and your payment
+attempt before opening `invoice_url`.
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Billions invoice ID used for authenticated retrieval. |
+| `invoice_url` | Hosted checkout URL. Redirect to this value unchanged. |
+| `status` | Current invoice status; retrieve it again before fulfillment. |
+| `order_no` | Your order reference, when supplied. |
+| `amount` | Requested invoice amount, returned as a string. |
+| `settlement_currency` | Currency code corresponding to the requested invoice denomination; compare this with the order currency. |
+| `currency` | Internal currency ticker; it can include a network suffix such as `USDT_TRON`. Do not compare it directly with an order denominated in `USDT`. |
+| `final_amount`, `paid_amount` | Amount due after applicable fees and amount recorded as paid. Do not infer completion from either amount alone. |
+| `expires_at` | Actual expiration time in the API response; it may be `null` on an existing invoice. |
+
+For example, an invoice requested in `USDT` can have
+`settlement_currency: "USDT"` and `currency: "USDT_TRON"`. Match your order to
+`settlement_currency` and the requested `amount`, then require `completed`
+from the authenticated API before fulfillment. See
+[callbacks and security](/integration/callbacks-and-security#match-the-invoice-to-your-order).
+
+The [create-invoice example](/examples/create-an-invoice) shows TypeScript,
+Python, PHP, and cURL. The live OpenAPI documents for
+[sandbox](https://api-sandbox.billions.works/public/v1/docs) and
+[production](https://api.billions.works/public/v1/docs) show the schemas
+currently deployed in each environment.

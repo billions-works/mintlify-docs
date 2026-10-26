@@ -50,6 +50,14 @@ page.
 | Public API key | The API key issued by Billions. WHMCS stores it in a masked password field; keep it server-side. |
 | Unique WHMCS instance ID | A stable ID of 3–30 ASCII letters, digits, underscores, or hyphens. Use a different ID for each installation sharing a merchant account. |
 
+<Warning>
+  The current WHMCS module has **no sandbox mode or API-host setting**. Its
+  client is fixed to `https://api.billions.works/public/v1`, so even a staging
+  WHMCS installation calls production. Use a production key only when you
+  intend to create real invoices. For API sandbox testing, use a custom
+  integration rather than this module.
+</Warning>
+
 Do not change the instance ID after accepting payments. It contributes to
 stable invoice identifiers and idempotency keys.
 
@@ -79,8 +87,8 @@ selected payment gateway, and current WHMCS balance before applying a verified
 The callback body and a customer's return from checkout are not payment proof.
 This verification flow uses the API key and does not require an HMAC secret.
 
-Test the checkout and callback with a small payment before enabling the gateway
-for customers. If a notification cannot be verified, the callback returns a
+Verify the checkout and callback with a controlled production payment before
+enabling the gateway for customers. If a notification cannot be verified, the callback returns a
 non-success HTTP response. Reconcile missed payments in the Billions dashboard.
 
 ## Current limitations

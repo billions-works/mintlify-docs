@@ -14,6 +14,8 @@ environments.
 
 Use sandbox for development, automated tests, and integration verification.
 Move to the production base URL only after completing the go-live checklist.
+For a guided check of invoice creation, redirect, and callbacks, see
+[Test in sandbox](/integration/sandbox-testing).
 
 ## Authentication levels
 
@@ -48,6 +50,9 @@ created with the API key secret. See [Request signing](/api/request-signing).
 | `POST` | `/public/v1/refunds/refundCrypto` | Create a signed crypto refund request |
 | `POST` | `/public/v1/refunds/refundFiat` | Create a signed fiat refund request |
 
+See [Create an invoice API](/api/create-invoice) for a field-by-field request
+reference and the response fields used for payment verification.
+
 ## Discover the API
 
 Use the OpenAPI specification for the environment you are calling to inspect
@@ -62,6 +67,26 @@ an endpoint may appear in one environment before another:
   [`https://api.billions.works/public/v1/docs`](https://api.billions.works/public/v1/docs)
 - Production OpenAPI JSON:
   [`https://api.billions.works/public/v1/swagger.json`](https://api.billions.works/public/v1/swagger.json)
+
+The **Live sandbox schema** entry in this documentation is generated from the
+hosted sandbox OpenAPI URL when Mintlify publishes the docs. This avoids
+copying the schema into this repository, but backend-only changes do not
+automatically trigger a Mintlify deployment: publish the docs again after
+updating the backend to refresh the generated page.
+The current OpenAPI document does **not** provide per-field descriptions for
+invoice creation; the explanations in [Create an invoice API](/api/create-invoice)
+are maintained here until those descriptions are added to the backend schema.
+The generated endpoint is shown without an interactive request sender because
+the source schema advertises a relative server URL.
+
+## Rate limits and network allowlists
+
+No numeric Public API rate limit or guaranteed callback source-IP range is
+published here. Do not build against an assumed requests-per-minute limit or
+hard-code an IP list found in an old response. Handle `429` and transient
+errors with bounded backoff, honor `Retry-After` when present, and preserve
+idempotency keys across retries. If your firewall requires a fixed callback
+source range, ask Billions support for the current operational guidance.
 
 <Warning>
   Keep API keys and API key secrets on your backend. Never expose them in a

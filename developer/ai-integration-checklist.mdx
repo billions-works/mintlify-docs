@@ -41,6 +41,9 @@ environment and report the discrepancy instead of guessing.
 - [ ] Start with `https://api-sandbox.billions.works` and sandbox credentials.
   Keep them separate from production credentials and
   `https://api.billions.works`.
+- [ ] Do not assume that a platform module can switch hosts: the current
+  WooCommerce and WHMCS modules call production only. BILLmanager has a
+  configurable API origin. Follow each module's guide.
 - [ ] Store the API key in server-side secret storage. Store the original API
   key secret only if the chosen flow needs signed money operations or optional
   webhook signature verification.
@@ -72,8 +75,9 @@ environment and report the discrepancy instead of guessing.
   secret and RFC 8785 JCS as defense in depth. Do not skip the API lookup even
   when the signature is valid.
 - [ ] Retrieve the invoice through the authenticated Billions API. Match its
-  invoice ID, order reference, amount, and currency against the stored payment
-  attempt before changing the order.
+  invoice ID, order reference, `amount`, and `settlement_currency` against the
+  stored payment attempt before changing the order. `currency` may be a
+  network-specific internal ticker such as `USDT_TRON`.
 - [ ] Fulfill only after the API returns `completed`. Keep `pending`,
   `processing`, `expired`, `failed`, and AML-related states distinct. Handle
   refund states if the application supports refunds.

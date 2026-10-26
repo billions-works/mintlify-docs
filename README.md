@@ -19,6 +19,17 @@ The documentation is then available at `http://localhost:3000`.
 - `sdks/` — SDK guides
 - `store-integrations/` — ecommerce platform integrations
 
+## OpenAPI reference
+
+The **Live sandbox schema** navigation group reads the public sandbox
+`/public/v1/swagger.json` URL at Mintlify publish time. When the backend
+changes without a docs commit, trigger a new Mintlify deployment so the
+generated endpoint page refreshes. The schema currently lacks per-field
+descriptions, so `api/create-invoice.mdx` supplies human-readable explanations
+that must be reviewed alongside backend changes. Keep the generated page in
+simple (non-interactive) mode until the OpenAPI `servers` value points to the
+correct absolute API host.
+
 `developer/ai-integration-checklist.mdx` is intentionally omitted from
 `docs.json` navigation. `seo.indexing: "all"` includes this page in the
 automatically generated `llms-full.txt`, which is the only URL in the AI

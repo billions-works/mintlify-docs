@@ -5,6 +5,8 @@ icon: "file-invoice"
 ---
 
 This example creates a `100 USDT` invoice for `ORDER-1001`.
+The examples below use the sandbox host explicitly. Replace it only when you
+are ready for production and have switched to production credentials.
 
 <CodeGroup>
 
@@ -13,6 +15,7 @@ import { BillionsApi } from '@billions-works/sdk-ts';
 
 const api = new BillionsApi({
   apiKey: process.env.BILLIONS_API_KEY!,
+  baseUrl: 'https://api-sandbox.billions.works',
 });
 
 const invoice = await api.createInvoice({
@@ -32,7 +35,10 @@ import os
 
 from billions_sdk import BillionsApi
 
-with BillionsApi(os.environ["BILLIONS_API_KEY"]) as api:
+with BillionsApi(
+    os.environ["BILLIONS_API_KEY"],
+    base_url="https://api-sandbox.billions.works",
+) as api:
     invoice = api.create_invoice(
         {
             "currency": "USDT",
@@ -54,7 +60,10 @@ require 'vendor/autoload.php';
 
 use Billions\BillionsApi;
 
-$api = new BillionsApi($_ENV['BILLIONS_API_KEY']);
+$api = new BillionsApi(
+    apiKey: $_ENV['BILLIONS_API_KEY'],
+    baseUrl: 'https://api-sandbox.billions.works',
+);
 
 $invoice = $api->createInvoice([
     'currency' => 'USDT',
@@ -69,6 +78,8 @@ echo $invoice['invoice_url'] . PHP_EOL;
 ```
 
 ```bash cURL
+BILLIONS_API_URL=https://api-sandbox.billions.works
+
 curl --request POST \
   --url "$BILLIONS_API_URL/public/v1/invoices/create" \
   --header "Content-Type: application/json" \
@@ -83,6 +94,9 @@ curl --request POST \
 ```
 
 </CodeGroup>
+
+The TypeScript SDK otherwise defaults to production when `baseUrl` is absent.
+For all request and response fields, see [Create an invoice API](/api/create-invoice).
 
 ## What to store
 

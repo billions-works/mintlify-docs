@@ -29,8 +29,9 @@ standalone and does not require Composer, Guzzle, or the Billions PHP SDK.
 
 <Steps>
   <Step title="Download the plugin">
-    Obtain the official plugin ZIP from the approved Billions distribution
-    channel.
+    Download the [repository source ZIP](https://github.com/billions-works/billions-payments-for-woocommerce/archive/refs/heads/main.zip).
+    This is the current source archive, not a versioned release asset. Check
+    the plugin version and contents before installing it on a production site.
   </Step>
   <Step title="Upload it to WordPress">
     In WordPress, open **Plugins → Add New Plugin → Upload Plugin**, choose the
@@ -40,20 +41,29 @@ standalone and does not require Composer, Guzzle, or the Billions PHP SDK.
     Activate **Billions Payments for WooCommerce**.
   </Step>
   <Step title="Configure the gateway">
-    Open **WooCommerce → Settings → Payments**, select Billions, and provide the
-    required credentials and currency settings.
-  </Step>
-  <Step title="Run a test order">
-    Complete checkout, pay on the hosted Billions page, and confirm that the
-    WooCommerce order updates after API verification.
+    Open **WooCommerce → Settings → Payments**, select Billions, and configure
+    the settings described below.
   </Step>
 </Steps>
 
-<Note>
-  TODO: Add the official download URL, screenshots, exact settings fields,
-  environment selection, and a troubleshooting section based on released plugin
-  behavior.
-</Note>
+## Gateway settings
+
+| Setting | Purpose |
+| --- | --- |
+| Enable/Disable | Makes the Billions gateway available at checkout when the other required settings are valid. |
+| Title | Payment method name shown to customers. |
+| Description | Customer-facing checkout description. |
+| Billions API key | Production API key, stored as a password field. |
+| Invoice currency | Must match the WooCommerce order currency. |
+| Debug logging | Logs API request paths and errors in WooCommerce; it does not log the API key or full callback body. |
+
+<Warning>
+  This plugin has **no sandbox mode or API-host setting**. Its API client is
+  fixed to `https://api.billions.works`. A staging WordPress site using this
+  plugin still calls production. Do not enter a sandbox key expecting a test
+  payment; use the [custom API sandbox flow](/integration/sandbox-testing) for
+  integration tests instead.
+</Warning>
 
 ## Payment behavior
 
@@ -83,6 +93,16 @@ when it has been registered with WooCommerce.
 - Refunds are not supported.
 - Subscriptions and recurring payments are not supported.
 - Saved payment methods are not supported.
+
+## Troubleshooting
+
+- If the gateway is absent at checkout, confirm that it is enabled, has an
+  API key, and its invoice currency matches the order currency.
+- If invoice creation fails, check the WooCommerce logs when debug logging is
+  enabled and confirm that the server can reach `api.billions.works` over HTTPS.
+- If an order remains on hold after payment, check that the WooCommerce
+  callback URL is public and the plugin can retrieve the invoice from the
+  authenticated API. A customer's return from checkout does not mark it paid.
 
 <Warning>
   Back up the site and test plugin updates in a staging environment before

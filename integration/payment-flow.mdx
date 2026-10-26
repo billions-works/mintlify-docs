@@ -62,6 +62,10 @@ curl --request POST \
 Set `BILLIONS_API_URL=https://api-sandbox.billions.works` while testing and
 switch it to `https://api.billions.works` only for production.
 
+See [Create an invoice API](/api/create-invoice) for every request field and
+its current schema type. The TypeScript SDK defaults to **production** when
+`baseUrl` is omitted; set the sandbox host explicitly in test code.
+
 Persist at least:
 
 - The invoice `id`
@@ -112,3 +116,16 @@ The invoice status can include:
 Callbacks and status checks can run more than once. Use a transaction or
 conditional update so inventory, emails, and fulfillment happen only on the
 first transition to paid.
+
+## Expiration and payment amount differences
+
+The current backend defaults an invoice without `expiresAt` to two hours after
+creation. Always store and use the response's `expires_at` instead of assuming
+that every invoice has the default lifetime. An expired or failed invoice
+requires a deliberate new payment attempt with a new idempotency key.
+
+Do not infer the treatment of an underpayment or overpayment from callback
+amount fields. No general automatic adjustment or refund policy is published
+for those cases. Retrieve the authoritative invoice, keep the order unpaid
+unless its status is `completed`, and reconcile any amount discrepancy with
+Billions support before fulfillment.

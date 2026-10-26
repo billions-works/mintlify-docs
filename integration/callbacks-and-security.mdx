@@ -258,10 +258,36 @@ curl --request GET \
   --header "x-api-key: $BILLIONS_API_KEY"
 ```
 
-Use the returned invoice status, amount, currency, and `order_no` for business
-decisions. This also handles missing or invalid signatures, delayed deliveries,
+Use the returned invoice status, amount, settlement currency, and `order_no`
+for business decisions. This also handles missing or invalid signatures, delayed deliveries,
 and webhooks missed during downtime. The API returns the **current** invoice
 state, which may be newer than the event that triggered the callback.
+
+## Match the invoice to your order
+
+Match the authenticated API response to the payment attempt you stored when
+creating the invoice:
+
+| Compare | Use from the retrieved invoice | Do not substitute |
+| --- | --- | --- |
+| Invoice identity | `id` | A callback-only identifier without an API lookup |
+| Business order | `order_no` | The customer's return URL or callback status |
+| Requested amount | `amount` | `final_amount` (which can include fees) or `paid_amount` |
+| Order denomination | `settlement_currency` | The network-specific `currency` or `payment_currency` |
+
+For a request denominated in `USDT`, the invoice can return
+`settlement_currency: "USDT"` and `currency: "USDT_TRON"`. The latter
+identifies a network-specific internal ticker; it is not a mismatch with an
+order denominated in `USDT`. Keep the expected order amount and currency in
+your own records and stop fulfillment if the authenticated response differs.
+Fulfill only after that response also reports `completed`.
+
+<Note>
+  No stable callback source-IP range is published for allowlisting. Do not use
+  an IP allowlist as your only authentication control. Use HTTPS, optional
+  HMAC signature verification, and the authenticated invoice lookup. Contact
+  Billions support if your network requires a published egress range.
+</Note>
 
 ## Security checklist
 

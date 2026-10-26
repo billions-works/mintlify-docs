@@ -21,6 +21,12 @@ npm install @billions-works/sdk-ts
 
 ## Initialize the client
 
+<Warning>
+  The TypeScript SDK uses `https://api.billions.works` when `baseUrl` is
+  omitted. Set `BILLIONS_API_URL=https://api-sandbox.billions.works`
+  explicitly before running any example with sandbox credentials.
+</Warning>
+
 ```ts
 import { BillionsApi } from '@billions-works/sdk-ts';
 
