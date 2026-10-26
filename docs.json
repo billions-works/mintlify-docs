@@ -27,6 +27,7 @@
     }
   },
   "seo": {
+    "indexing": "all",
     "metatags": {
       "og:image": "https://billions.works/images/og/og-image.png",
       "twitter:image": "https://billions.works/images/og/og-image.png",

@@ -20,9 +20,9 @@ The documentation is then available at `http://localhost:3000`.
 - `store-integrations/` — ecommerce platform integrations
 
 `developer/ai-integration-checklist.mdx` is intentionally omitted from
-`docs.json` navigation. The AI integration prompt links directly to its
-Markdown endpoint. It is publicly accessible by URL, but not shown in the
-navigation or indexed by search engines.
+`docs.json` navigation. `seo.indexing: "all"` includes this page in the
+automatically generated `llms-full.txt`, which is the only URL in the AI
+integration prompt. The page is still publicly accessible by direct URL.
 
 Before publishing, replace every `TODO` callout with production-specific
 information.
