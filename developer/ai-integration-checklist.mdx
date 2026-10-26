@@ -1,0 +1,107 @@
+---
+title: "AI integration implementation checklist"
+description: "A task-by-task checklist for coding agents implementing Billions payments."
+noindex: "true"
+---
+
+This page is a working checklist for a coding agent, not a replacement for the
+[full Billions documentation](https://docs.billions.works/llms-full.txt).
+Read the relevant source pages before writing code. If a requirement conflicts
+with the current API schema or an SDK's current README, verify the deployed
+environment and report the discrepancy instead of guessing.
+
+## 1. Understand the project
+
+- [ ] Inspect the application stack, existing checkout flow, order model,
+  payment status transitions, background jobs, and test conventions.
+- [ ] Identify where server-side secrets, the Billions API base URL, and
+  callback URLs are configured. Never put credentials in frontend or mobile
+  code, URLs, logs, or committed files.
+- [ ] Identify the order's stable reference, the place to persist a Billions
+  invoice ID, and the code path that fulfills an order exactly once.
+- [ ] Ask for missing business decisions—such as settlement currency, supported
+  payment methods, or fulfillment policy—rather than inventing them.
+
+## 2. Choose one documented integration path
+
+- [ ] For an existing store or billing platform, check the relevant
+  [platform integration](/store-integrations/overview) before writing a custom
+  gateway. Follow that module's own installation and callback instructions.
+- [ ] For a custom backend, use the [official SDK](/sdks/overview) for the
+  project's runtime when suitable. Otherwise use the [Public API](/api/overview).
+- [ ] Use the [Unified Merchant API](/integration/unified-merchant-api) only
+  when adapting an existing compatible SDK or module; it is a partial
+  compatibility layer, not the default path for a new integration.
+- [ ] Check the currently deployed [OpenAPI schema](/api/overview#discover-the-api)
+  for exact request and response fields. Do not invent endpoints or SDK methods.
+
+## 3. Prepare the environment and credentials
+
+- [ ] Start with `https://api-sandbox.billions.works` and sandbox credentials.
+  Keep them separate from production credentials and
+  `https://api.billions.works`.
+- [ ] Store the API key in server-side secret storage. Store the original API
+  key secret only if the chosen flow needs signed money operations or optional
+  webhook signature verification.
+- [ ] Configure a publicly reachable HTTPS callback URL for a custom
+  integration. Check that the deployed service can reach the Billions API.
+- [ ] Confirm supported currencies through the API instead of assuming a
+  hard-coded list. Follow [prerequisites](/integration/prerequisites).
+
+## 4. Create an invoice safely
+
+- [ ] Create invoices on the backend, never in the browser. Send the documented
+  currency, amount, `order_no`, `idempotencyKey`, and callback URL.
+- [ ] Keep `order_no` stable for the business order. Use a stable
+  `idempotencyKey` for retries of the **same logical creation attempt**, and a
+  new key for a deliberately new payment attempt.
+- [ ] Persist the invoice ID, order reference, idempotency key, status, and
+  expiration when provided. Handle network timeouts without creating an
+  accidental second payment attempt.
+- [ ] Redirect the customer using the returned `invoice_url` unchanged. Do not
+  construct a checkout URL or treat the customer's return as payment proof.
+- [ ] Follow the [payment flow](/integration/payment-flow) and
+  [create-invoice example](/examples/create-an-invoice).
+
+## 5. Confirm payment from the authoritative API
+
+- [ ] Accept the documented callback payload and read `data.invoice_id` for
+  new integrations. Treat the callback as a signal, not as proof of payment.
+- [ ] Optionally verify `x-billions-signature` with the original API key
+  secret and RFC 8785 JCS as defense in depth. Do not skip the API lookup even
+  when the signature is valid.
+- [ ] Retrieve the invoice through the authenticated Billions API. Match its
+  invoice ID, order reference, amount, and currency against the stored payment
+  attempt before changing the order.
+- [ ] Fulfill only after the API returns `completed`. Keep `pending`,
+  `processing`, `expired`, `failed`, and AML-related states distinct. Handle
+  refund states if the application supports refunds.
+- [ ] Make callbacks, polling, and fulfillment idempotent. Persist the state
+  transition before acknowledging the callback; enqueue slow side effects.
+- [ ] Add a recovery path for delayed or missed callbacks by retrieving the
+  invoice from the API. Follow [callbacks and security](/integration/callbacks-and-security)
+  and the [callback example](/examples/handle-a-callback).
+
+## 6. Add optional money operations only when requested
+
+- [ ] Do not add withdrawals or refunds unless they are in scope. If needed,
+  follow [request signing](/api/request-signing) and
+  [withdrawals and refunds](/api/withdrawals-and-refunds) exactly.
+- [ ] Use the original API key secret, RFC 8785 canonical JSON, HMAC-SHA256,
+  and the documented request-ID and retry rules. Never reuse a request ID for
+  different operation data.
+
+## 7. Test and hand off
+
+- [ ] Test a successful sandbox payment end to end and confirm that only the
+  authenticated API response marks the order paid.
+- [ ] Test abandoned checkout, expired or failed invoice, duplicate and
+  delayed callbacks, callback before customer return, and API timeouts.
+- [ ] Test invalid signatures and mismatched invoice details where applicable.
+  Confirm that repeated callbacks cannot repeat fulfillment.
+- [ ] Run the project's relevant automated tests and the
+  [go-live checklist](/integration/go-live-checklist). Do not claim an
+  end-to-end payment was tested unless it actually was.
+- [ ] Report what was implemented, the files changed, tests run, remaining
+  assumptions, and any steps that require merchant credentials or a real
+  checkout. Do not silently switch to production.

@@ -19,6 +19,11 @@ The documentation is then available at `http://localhost:3000`.
 - `sdks/` — SDK guides
 - `store-integrations/` — ecommerce platform integrations
 
+`developer/ai-integration-checklist.mdx` is intentionally omitted from
+`docs.json` navigation. The AI integration prompt links directly to its
+Markdown endpoint. It is publicly accessible by URL, but not shown in the
+navigation or indexed by search engines.
+
 Before publishing, replace every `TODO` callout with production-specific
 information.
 
