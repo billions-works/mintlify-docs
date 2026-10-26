@@ -21,7 +21,7 @@ The documentation is then available at `http://localhost:3000`.
 
 ## OpenAPI reference
 
-The **Live sandbox schema** navigation group reads the public sandbox
+The **Live production schema** navigation group reads the production
 `/public/v1/swagger.json` URL at Mintlify publish time. When the backend
 changes without a docs commit, trigger a new Mintlify deployment so the
 generated endpoint page refreshes. The schema currently lacks per-field

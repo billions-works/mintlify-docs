@@ -68,14 +68,15 @@ an endpoint may appear in one environment before another:
 - Production OpenAPI JSON:
   [`https://api.billions.works/public/v1/swagger.json`](https://api.billions.works/public/v1/swagger.json)
 
-The **Live sandbox schema** entry in this documentation is generated from the
-hosted sandbox OpenAPI URL when Mintlify publishes the docs. This avoids
+The **Live production schema** entry in this documentation is generated from the
+hosted production OpenAPI URL when Mintlify publishes the docs. This avoids
 copying the schema into this repository, but backend-only changes do not
 automatically trigger a Mintlify deployment: publish the docs again after
 updating the backend to refresh the generated page.
-The current OpenAPI document does **not** provide per-field descriptions for
-invoice creation; the explanations in [Create an invoice API](/api/create-invoice)
-are maintained here until those descriptions are added to the backend schema.
+The current production OpenAPI document does **not** provide per-field
+descriptions for invoice creation; the explanations in
+[Create an invoice API](/api/create-invoice) are maintained here until those
+descriptions are added to the backend schema.
 The generated endpoint is shown without an interactive request sender because
 the source schema advertises a relative server URL.
 

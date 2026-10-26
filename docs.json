@@ -93,8 +93,8 @@
               "api/request-signing",
               "api/withdrawals-and-refunds",
               {
-                "group": "Live sandbox schema",
-                "openapi": "https://api-sandbox.billions.works/public/v1/swagger.json",
+                "group": "Live production schema",
+                "openapi": "https://api.billions.works/public/v1/swagger.json",
                 "pages": [
                   "POST /public/v1/invoices/create"
                 ]
