@@ -106,6 +106,9 @@ The invoice status can include:
 | `aml_check` | Keep fulfillment on hold |
 | `aml_block` | Keep fulfillment blocked and follow your review process |
 
+See [Statuses and lifecycle](/api/statuses#invoice-statuses) for full status
+definitions, including the refund request states behind `refund_processing`.
+
 <Warning>
   Status mapping is a business decision. Do not fulfill goods or services until
   your backend has retrieved a `completed` invoice from the API.

@@ -90,6 +90,7 @@
             "pages": [
               "api/overview",
               "api/create-invoice",
+              "api/statuses",
               "api/request-signing",
               "api/withdrawals-and-refunds",
               {

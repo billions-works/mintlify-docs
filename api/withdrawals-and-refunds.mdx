@@ -193,3 +193,7 @@ signed `x-billions-request-id`.
 Refund responses additionally include `invoice_id`, `type`, `to_address`, and
 `withdraw_to_same_address`. Payout processor status and transaction ID may be
 filled asynchronously.
+
+See [Statuses and lifecycle](/api/statuses#withdrawal-request-statuses) for
+the meanings of withdrawal and refund request statuses. Use the request's
+`status` for business decisions; `payout_processor_status` is provider detail.

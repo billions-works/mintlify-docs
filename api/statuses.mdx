@@ -1,0 +1,89 @@
+---
+title: "Statuses and lifecycle"
+description: "Understand invoice, withdrawal, and refund statuses returned by the Public API."
+icon: "list-check"
+---
+
+The Public API returns a `status` for three kinds of records: invoices,
+withdrawal requests, and refund requests. These are **different status
+vocabularies**. Always read the status from the authenticated API response;
+a callback is a notification that the invoice may have changed, not the source
+of truth.
+
+## Invoice statuses
+
+The `status` field appears in invoice creation and retrieval responses.
+These are the values in the [production OpenAPI schema](https://api.billions.works/public/v1/swagger.json):
+
+| Status | Meaning | Integration handling |
+| --- | --- | --- |
+| `pending` | The invoice is open and awaiting payment. | Keep the order unpaid. |
+| `processing` | A payment has been detected or is being processed; completion has not been confirmed. | Show a pending state; do not fulfill. |
+| `aml_check` | The payment is undergoing a compliance check. | Keep fulfillment on hold. |
+| `aml_block` | The payment is blocked by a compliance decision. | Do not fulfill; follow your review and support process. |
+| `completed` | The payment is confirmed for this invoice. | After matching the invoice ID, order, amount, and settlement currency, fulfill exactly once. |
+| `failed` | The payment attempt did not complete successfully. | Keep the order unpaid; offer a deliberate new attempt if appropriate. |
+| `expired` | The invoice passed its payment deadline without completion. | Keep the order unpaid; create a new attempt rather than reusing its checkout URL. |
+| `refund_processing` | A refund has been requested and is not yet complete. | Show the refund as pending; do not mark it refunded yet. |
+| `refunded` | The refund has completed. | Mark the payment as refunded in your records. |
+
+An invoice can move from `completed` to `refund_processing`, then to
+`refunded`. If a refund fails or is declined, the invoice can return to
+`completed`; inspect the **refund request** for the refund outcome. Do not
+assume that `completed` is the last possible invoice status.
+
+<Warning>
+  Only an authenticated invoice lookup returning `completed` can authorize
+  fulfillment. `processing`, `aml_check`, a customer's return from checkout,
+  or an `invoice.paid` callback on its own is not sufficient.
+</Warning>
+
+## Withdrawal request statuses
+
+The `status` field on a withdrawal request tracks the Billions request,
+not the external payout processor. Public API-created requests currently
+start in `processing`, but clients must handle every documented value.
+
+| Status | Meaning |
+| --- | --- |
+| `created` | The request exists but has not entered review or payout processing. |
+| `pending` | The request is awaiting confirmation or another processing step. |
+| `processing` | The withdrawal is being handled; payout is not yet confirmed. |
+| `success` | The withdrawal completed successfully. |
+| `rejected` | The withdrawal did not complete, including a rejected or failed payout. |
+
+`success` and `rejected` are terminal request outcomes. Do not treat
+`processing` as proof that the recipient has been paid.
+
+## Refund request statuses
+
+The `status` field on a refund request is separate from the original invoice
+status. Public API-created refund requests currently start in `processing`.
+
+| Status | Meaning |
+| --- | --- |
+| `new` | The refund request exists and has not entered processing. |
+| `processing` | The refund is being reviewed or sent; it is not complete. |
+| `refunded` | The refund completed successfully. |
+| `failed` | The refund could not complete, for example because a payout failed. |
+| `declined` | The refund was declined during review. |
+
+`refunded`, `failed`, and `declined` are terminal request outcomes. After a
+failed or declined refund, the original invoice can again report `completed`;
+that means the payment still stands, **not** that the refund succeeded.
+
+## Other status fields and events
+
+Withdrawal and refund responses may also contain `payout_processor_status`.
+It is the latest provider-reported state and can be `null`; its values are not
+the stable Billions request status enum. Use the request's `status` for your
+business workflow, and keep provider details for diagnostics.
+
+Native invoice callbacks have an `event` (`invoice.status_changed` or
+`invoice.paid`) plus `previous_status` and `status`. These describe an invoice
+transition, not a separate webhook-delivery status. Callback delivery may be
+delayed or retried, so retrieve the current invoice before acting. See
+[Callbacks and security](/integration/callbacks-and-security).
+
+For the request and response fields of money operations, see
+[Withdrawals and refunds](/api/withdrawals-and-refunds).
