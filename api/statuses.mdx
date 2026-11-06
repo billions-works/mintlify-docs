@@ -40,17 +40,17 @@ assume that `completed` is the last possible invoice status.
 
 ## Withdrawal request statuses
 
-The `status` field on a withdrawal request tracks the Billions request,
-not the external payout processor. Public API-created requests currently
-start in `processing`, but clients must handle every documented value.
+The `status` field tracks the Billions withdrawal request. Public API-created
+requests currently start in `processing`, but clients must handle every
+documented value.
 
 | Status | Meaning |
 | --- | --- |
-| `created` | The request exists but has not entered review or payout processing. |
+| `created` | The request exists but has not entered processing. |
 | `pending` | The request is awaiting confirmation or another processing step. |
 | `processing` | The withdrawal is being handled; payout is not yet confirmed. |
 | `success` | The withdrawal completed successfully. |
-| `rejected` | The withdrawal did not complete, including a rejected or failed payout. |
+| `rejected` | The withdrawal was rejected or could not be completed. |
 
 `success` and `rejected` are terminal request outcomes. Do not treat
 `processing` as proof that the recipient has been paid.
@@ -65,19 +65,14 @@ status. Public API-created refund requests currently start in `processing`.
 | `new` | The refund request exists and has not entered processing. |
 | `processing` | The refund is being reviewed or sent; it is not complete. |
 | `refunded` | The refund completed successfully. |
-| `failed` | The refund could not complete, for example because a payout failed. |
+| `failed` | The refund could not be completed. |
 | `declined` | The refund was declined during review. |
 
 `refunded`, `failed`, and `declined` are terminal request outcomes. After a
 failed or declined refund, the original invoice can again report `completed`;
 that means the payment still stands, **not** that the refund succeeded.
 
-## Other status fields and events
-
-Withdrawal and refund responses may also contain `payout_processor_status`.
-It is the latest provider-reported state and can be `null`; its values are not
-the stable Billions request status enum. Use the request's `status` for your
-business workflow, and keep provider details for diagnostics.
+## Callback events
 
 Native invoice callbacks have an `event` (`invoice.status_changed` or
 `invoice.paid`) plus `previous_status` and `status`. These describe an invoice
