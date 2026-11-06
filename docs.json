@@ -94,8 +94,8 @@
               "api/request-signing",
               "api/withdrawals-and-refunds",
               {
-                "group": "Live production schema",
-                "openapi": "https://api.billions.works/public/v1/swagger.json",
+                "group": "Production API schema",
+                "openapi": "openapi/public-v1.json",
                 "pages": [
                   "POST /public/v1/invoices/create"
                 ]

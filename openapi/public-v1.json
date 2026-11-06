@@ -1,0 +1,2191 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"PublicApiError": {
+				"properties": {
+					"error": {
+						"type": "boolean",
+						"description": "Always true for API errors."
+					},
+					"message": {
+						"type": "string",
+						"description": "Human-readable explanation; do not parse for program logic."
+					},
+					"code": {
+						"type": "number",
+						"format": "double",
+						"description": "HTTP status code repeated in the response body."
+					}
+				},
+				"required": [
+					"error",
+					"message",
+					"code"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CurrencyType": {
+				"type": "string",
+				"enum": [
+					"stablecoin",
+					"fiat",
+					"token"
+				]
+			},
+			"CurrencyInfo": {
+				"properties": {
+					"ticker": {
+						"type": "string",
+						"description": "Currency ticker shared across networks, such as USDT."
+					},
+					"fullName": {
+						"type": "string",
+						"description": "Human-readable currency and network name."
+					},
+					"network": {
+						"type": "string",
+						"description": "Payment network identifier; empty for fiat."
+					},
+					"contractAddress": {
+						"type": "string",
+						"nullable": true,
+						"description": "Token contract address when applicable, otherwise null."
+					},
+					"type": {
+						"$ref": "#/components/schemas/CurrencyType",
+						"description": "Currency category: stablecoin, fiat or token."
+					},
+					"icon": {
+						"type": "string",
+						"description": "Light-theme icon URL."
+					},
+					"iconDark": {
+						"type": "string",
+						"description": "Dark-theme icon URL."
+					},
+					"internalTicker": {
+						"type": "string",
+						"description": "Unique ticker including network when applicable, such as USDT_TRON."
+					}
+				},
+				"required": [
+					"ticker",
+					"fullName",
+					"network",
+					"contractAddress",
+					"type",
+					"icon",
+					"iconDark",
+					"internalTicker"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CountryInfo": {
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "Two-letter ISO 3166-1 alpha-2 country code."
+					},
+					"name": {
+						"type": "string",
+						"description": "English country or territory name."
+					}
+				},
+				"required": [
+					"code",
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PublicMerchantInfo": {
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "Merchant UUID."
+					},
+					"email": {
+						"type": "string",
+						"description": "Owner account email."
+					},
+					"merchantName": {
+						"type": "string",
+						"nullable": true,
+						"description": "Registered company name, if provided."
+					},
+					"directorName": {
+						"type": "string",
+						"nullable": true,
+						"description": "Company director name, if provided."
+					},
+					"website": {
+						"type": "string",
+						"nullable": true,
+						"description": "Merchant website, if provided."
+					},
+					"logo": {
+						"type": "string",
+						"nullable": true,
+						"description": "Merchant logo URL, if configured."
+					},
+					"whitelabeling": {
+						"type": "boolean",
+						"description": "Whether merchant-specific branding is enabled."
+					}
+				},
+				"required": [
+					"id",
+					"email",
+					"merchantName",
+					"directorName",
+					"website",
+					"logo",
+					"whitelabeling"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"InvoiceType": {
+				"type": "string",
+				"enum": [
+					"b2b",
+					"b2c"
+				]
+			},
+			"InvoiceStatus": {
+				"type": "string",
+				"enum": [
+					"pending",
+					"processing",
+					"completed",
+					"refund_processing",
+					"failed",
+					"expired",
+					"refunded",
+					"aml_check",
+					"aml_block"
+				]
+			},
+			"PublicCreatedInvoiceResponse": {
+				"properties": {
+					"created_at": {
+						"type": "string",
+						"format": "date-time",
+						"description": "Invoice creation time in UTC."
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"description": "Last invoice update time in UTC."
+					},
+					"expires_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true,
+						"description": "Invoice expiration time in UTC, or null when not set."
+					},
+					"invoice_url": {
+						"type": "string",
+						"description": "Hosted payment page URL."
+					},
+					"id": {
+						"type": "string",
+						"description": "Invoice UUID."
+					},
+					"api_source": {
+						"type": "string",
+						"enum": [
+							"billions",
+							"cryptomus",
+							"tilda",
+							null
+						],
+						"nullable": true,
+						"description": "API integration that created the invoice; native public API creates billions."
+					},
+					"type": {
+						"$ref": "#/components/schemas/InvoiceType",
+						"description": "b2b or b2c invoice audience."
+					},
+					"status": {
+						"$ref": "#/components/schemas/InvoiceStatus",
+						"description": "Current lifecycle state; see operation description for state meanings."
+					},
+					"merchant_id": {
+						"type": "string",
+						"description": "Owning merchant UUID."
+					},
+					"settlement_currency": {
+						"type": "string",
+						"nullable": true,
+						"description": "Requested settlement currency ticker."
+					},
+					"currency": {
+						"type": "string",
+						"nullable": true,
+						"description": "Current invoice currency; may be network-specific after payment selection."
+					},
+					"convert_currency": {
+						"type": "string",
+						"nullable": true,
+						"description": "Optional auto-conversion target ticker."
+					},
+					"amount": {
+						"type": "string",
+						"description": "Original invoice amount as a decimal string."
+					},
+					"final_amount": {
+						"type": "string",
+						"description": "Payer-facing amount after invoice fees as a decimal string."
+					},
+					"merchant_fee": {
+						"type": "string",
+						"description": "Merchant fee as a decimal string in settlement currency."
+					},
+					"network_and_other_fees": {
+						"type": "string",
+						"description": "Network and other payment fees as a decimal string."
+					},
+					"merchant_receive_amount": {
+						"type": "string",
+						"description": "Estimated amount credited to merchant, as a decimal string."
+					},
+					"paid_amount": {
+						"type": "string",
+						"description": "Amount actually received so far, as a decimal string."
+					},
+					"callback_url": {
+						"type": "string",
+						"nullable": true,
+						"description": "Configured webhook destination, or null."
+					},
+					"success_url": {
+						"type": "string",
+						"nullable": true,
+						"description": "Configured success redirect, or null."
+					},
+					"return_url": {
+						"type": "string",
+						"nullable": true,
+						"description": "Configured return redirect, or null."
+					},
+					"fail_url": {
+						"type": "string",
+						"nullable": true,
+						"description": "Configured failure redirect, or null."
+					},
+					"order_no": {
+						"type": "string",
+						"nullable": true,
+						"description": "Merchant order reference, or null."
+					},
+					"description": {
+						"type": "string",
+						"nullable": true,
+						"description": "Merchant description, or null."
+					}
+				},
+				"required": [
+					"created_at",
+					"updated_at",
+					"expires_at",
+					"invoice_url",
+					"id",
+					"api_source",
+					"type",
+					"status",
+					"merchant_id",
+					"settlement_currency",
+					"currency",
+					"convert_currency",
+					"amount",
+					"final_amount",
+					"merchant_fee",
+					"network_and_other_fees",
+					"merchant_receive_amount",
+					"paid_amount",
+					"callback_url",
+					"success_url",
+					"return_url",
+					"fail_url",
+					"order_no",
+					"description"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PublicCreateInvoiceBody": {
+				"properties": {
+					"idempotencyKey": {
+						"type": "string",
+						"description": "Optional merchant-scoped retry key. Trimmed; an existing key returns the original invoice even if the new body differs. No length or character limit is currently enforced. The Idempotency-Key header is a fallback."
+					},
+					"currency": {
+						"type": "string",
+						"description": "Supported currency ticker (for example EUR, USD, USDT) or network-specific internal ticker from GET /public/v1/currencies."
+					},
+					"amount": {
+						"anyOf": [
+							{
+								"type": "number",
+								"format": "double"
+							},
+							{
+								"type": "string"
+							}
+						],
+						"description": "Positive finite invoice amount in the requested currency. Numeric strings are accepted. Zero, negative, nonnumeric or amounts outside merchant-specific minimum/maximum limits return 400."
+					},
+					"type": {
+						"$ref": "#/components/schemas/InvoiceType",
+						"description": "Invoice audience: b2c (default) or b2b. Other values return 400."
+					},
+					"order_no": {
+						"type": "string",
+						"description": "Optional merchant order reference; whitespace is trimmed. Multiple invoices may share an order number."
+					},
+					"description": {
+						"type": "string",
+						"description": "Optional invoice description shown with the order."
+					},
+					"autoconvert": {
+						"type": "string",
+						"description": "Optional target balance currency, without a network suffix (for example EUR or USDT). Unsupported values return 400."
+					},
+					"callbackUrl": {
+						"type": "string",
+						"description": "Optional HTTP(S) webhook destination. Invalid protocols or malformed URLs return 400."
+					},
+					"success_url": {
+						"type": "string",
+						"description": "Optional HTTP(S) success redirect, 6-255 characters; malformed values return 400. Redirect alone does not confirm payment."
+					},
+					"return_url": {
+						"type": "string",
+						"description": "Optional HTTP(S) return redirect, 6-255 characters; malformed values return 400."
+					},
+					"fail_url": {
+						"type": "string",
+						"description": "Optional HTTP(S) failure redirect, 6-255 characters; malformed values return 400."
+					},
+					"expiresAt": {
+						"type": "string",
+						"description": "Optional parseable date/time (ISO 8601 with timezone recommended). Invalid dates return 400; omitted or empty uses creation time plus two hours."
+					}
+				},
+				"required": [
+					"currency",
+					"amount"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CalculatedInvoiceFeeResult": {
+				"properties": {
+					"amount": {
+						"type": "number",
+						"format": "double",
+						"description": "Original requested invoice amount."
+					},
+					"finalPrice": {
+						"type": "number",
+						"format": "double",
+						"description": "Payer-facing total including invoice fees."
+					},
+					"fee": {
+						"type": "number",
+						"format": "double",
+						"description": "Platform fee deducted from merchant proceeds."
+					},
+					"summaryFee": {
+						"type": "number",
+						"format": "double",
+						"description": "Optional aggregate fee, included only in development mode."
+					},
+					"merchantReceiveAmount": {
+						"type": "number",
+						"format": "double",
+						"description": "Estimated amount credited to the merchant."
+					}
+				},
+				"required": [
+					"amount",
+					"finalPrice",
+					"fee",
+					"merchantReceiveAmount"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PublicEstimateInvoiceFeesBody": {
+				"properties": {
+					"currency": {
+						"type": "string",
+						"description": "Currency ticker or network-specific internal ticker from GET /public/v1/currencies."
+					},
+					"amount": {
+						"anyOf": [
+							{
+								"type": "number",
+								"format": "double"
+							},
+							{
+								"type": "string"
+							}
+						],
+						"description": "Positive finite amount; numeric strings are accepted. Invalid values or amounts outside merchant-specific invoice limits return 400."
+					},
+					"type": {
+						"$ref": "#/components/schemas/InvoiceType",
+						"description": "Optional b2b or b2c invoice type."
+					},
+					"order_no": {
+						"type": "string",
+						"description": "Optional order reference; not used to calculate fees."
+					},
+					"description": {
+						"type": "string",
+						"description": "Optional description; not used to calculate fees."
+					},
+					"autoconvert": {
+						"type": "string",
+						"description": "Optional settlement target; this estimate calculates invoice fees, not a guaranteed conversion quote."
+					}
+				},
+				"required": [
+					"currency",
+					"amount"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PublicWithdrawalRequest": {
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "Withdrawal request UUID."
+					},
+					"currency": {
+						"type": "string",
+						"description": "Debited merchant balance currency."
+					},
+					"amount": {
+						"type": "string",
+						"description": "Requested payout amount as a decimal string."
+					},
+					"withdrawal_method_id": {
+						"type": "number",
+						"format": "double",
+						"description": "Saved withdrawal method identifier."
+					},
+					"status": {
+						"type": "string",
+						"description": "created -> pending/processing -> success or rejected; intermediate provider states can differ."
+					},
+					"reason": {
+						"type": "string",
+						"nullable": true,
+						"description": "Merchant or administrator reason, if recorded."
+					},
+					"is_manual": {
+						"type": "boolean",
+						"description": "Whether manual payout handling is required."
+					},
+					"payout_processor_id": {
+						"type": "string",
+						"nullable": true,
+						"description": "Payout provider request identifier, if submitted."
+					},
+					"payout_processor_status": {
+						"type": "string",
+						"nullable": true,
+						"description": "Latest provider-reported payout status."
+					},
+					"payout_processor_error": {
+						"type": "string",
+						"nullable": true,
+						"description": "Latest provider error text, if any."
+					},
+					"payout_processor_tx_id": {
+						"type": "string",
+						"nullable": true,
+						"description": "Blockchain or payout transaction identifier, when available."
+					},
+					"payout_processor_initialized_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true,
+						"description": "Time the payout provider was first called."
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time",
+						"description": "Request creation time in UTC."
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"description": "Last request update time in UTC."
+					},
+					"finished_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true,
+						"description": "Terminal-state time, or null while outstanding."
+					}
+				},
+				"required": [
+					"id",
+					"currency",
+					"amount",
+					"withdrawal_method_id",
+					"status",
+					"reason",
+					"is_manual",
+					"payout_processor_id",
+					"payout_processor_status",
+					"payout_processor_error",
+					"payout_processor_tx_id",
+					"payout_processor_initialized_at",
+					"created_at",
+					"updated_at",
+					"finished_at"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PublicOperationListResponse_PublicWithdrawalRequest_": {
+				"properties": {
+					"page": {
+						"type": "number",
+						"format": "double",
+						"description": "One-based current page. Values below one are normalized to one."
+					},
+					"pageSize": {
+						"type": "number",
+						"format": "double",
+						"description": "Items per page, capped at 200; default 20."
+					},
+					"total": {
+						"type": "number",
+						"format": "double",
+						"description": "Number of matching requests across all pages."
+					},
+					"items": {
+						"items": {
+							"$ref": "#/components/schemas/PublicWithdrawalRequest"
+						},
+						"type": "array",
+						"description": "Requests in the selected page."
+					}
+				},
+				"required": [
+					"page",
+					"pageSize",
+					"total",
+					"items"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PublicRefundRequest": {
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "Refund request UUID."
+					},
+					"invoice_id": {
+						"type": "string",
+						"description": "Original invoice UUID."
+					},
+					"type": {
+						"type": "string",
+						"description": "crypto or fiat refund."
+					},
+					"currency": {
+						"type": "string",
+						"description": "Currency debited for the refund."
+					},
+					"amount": {
+						"type": "string",
+						"description": "Refund amount as a decimal string."
+					},
+					"to_address": {
+						"type": "string",
+						"nullable": true,
+						"description": "Crypto recipient address, or null for fiat refunds."
+					},
+					"withdraw_to_same_address": {
+						"type": "boolean",
+						"description": "Whether recipient was derived from the single incoming invoice transaction."
+					},
+					"status": {
+						"type": "string",
+						"description": "new -> processing -> refunded, failed or declined."
+					},
+					"reason": {
+						"type": "string",
+						"nullable": true,
+						"description": "Reason supplied for the refund, if any."
+					},
+					"refunded_at": {
+						"type": "string",
+						"format": "date-time",
+						"nullable": true,
+						"description": "Completion time for a successful refund, or null."
+					},
+					"payout_processor_id": {
+						"type": "string",
+						"nullable": true,
+						"description": "Payout provider request identifier, if submitted."
+					},
+					"payout_processor_status": {
+						"type": "string",
+						"nullable": true,
+						"description": "Latest provider-reported payout status."
+					},
+					"payout_processor_error": {
+						"type": "string",
+						"nullable": true,
+						"description": "Latest provider error text, if any."
+					},
+					"payout_processor_tx_id": {
+						"type": "string",
+						"nullable": true,
+						"description": "Blockchain or payout transaction identifier, when available."
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time",
+						"description": "Request creation time in UTC."
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time",
+						"description": "Last request update time in UTC."
+					}
+				},
+				"required": [
+					"id",
+					"invoice_id",
+					"type",
+					"currency",
+					"amount",
+					"to_address",
+					"withdraw_to_same_address",
+					"status",
+					"reason",
+					"refunded_at",
+					"payout_processor_id",
+					"payout_processor_status",
+					"payout_processor_error",
+					"payout_processor_tx_id",
+					"created_at",
+					"updated_at"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PublicOperationListResponse_PublicRefundRequest_": {
+				"properties": {
+					"page": {
+						"type": "number",
+						"format": "double",
+						"description": "One-based current page. Values below one are normalized to one."
+					},
+					"pageSize": {
+						"type": "number",
+						"format": "double",
+						"description": "Items per page, capped at 200; default 20."
+					},
+					"total": {
+						"type": "number",
+						"format": "double",
+						"description": "Number of matching requests across all pages."
+					},
+					"items": {
+						"items": {
+							"$ref": "#/components/schemas/PublicRefundRequest"
+						},
+						"type": "array",
+						"description": "Requests in the selected page."
+					}
+				},
+				"required": [
+					"page",
+					"pageSize",
+					"total",
+					"items"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateMerchantWithdrawalInput": {
+				"properties": {
+					"currency": {
+						"type": "string",
+						"description": "Balance currency ticker or network-specific internal ticker."
+					},
+					"amount": {
+						"anyOf": [
+							{
+								"type": "number",
+								"format": "double"
+							},
+							{
+								"type": "string"
+							}
+						],
+						"description": "Positive withdrawal amount; zero, negative, nonnumeric or amounts outside merchant-specific minimum/maximum limits return 400."
+					},
+					"withdrawalMethodId": {
+						"type": "number",
+						"format": "double",
+						"description": "Positive integer ID of an existing withdrawal method in the same currency."
+					}
+				},
+				"required": [
+					"currency",
+					"amount",
+					"withdrawalMethodId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateMerchantCryptoRefundInput": {
+				"properties": {
+					"invoiceId": {
+						"type": "string",
+						"description": "UUID of a completed crypto invoice belonging to the merchant."
+					},
+					"reason": {
+						"type": "string",
+						"description": "Optional refund reason."
+					},
+					"address": {
+						"type": "string",
+						"description": "Destination address; required unless withdrawToSameAddress can resolve exactly one incoming transaction."
+					},
+					"withdrawToSameAddress": {
+						"type": "boolean",
+						"description": "If true, derive the address from the invoice's sole incoming transaction; zero or multiple transactions return 400."
+					}
+				},
+				"required": [
+					"invoiceId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateMerchantFiatRefundInput": {
+				"properties": {
+					"invoiceId": {
+						"type": "string",
+						"description": "UUID of a completed fiat invoice belonging to the merchant."
+					},
+					"reason": {
+						"type": "string",
+						"description": "Optional refund reason."
+					}
+				},
+				"required": [
+					"invoiceId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {
+			"ApiKeyAuth": {
+				"type": "apiKey",
+				"in": "header",
+				"name": "x-api-key",
+				"description": "Merchant API key"
+			},
+			"BearerAuth": {
+				"type": "http",
+				"in": "header",
+				"scheme": "bearer",
+				"bearerFormat": "JWT",
+				"name": "Authorization",
+				"description": "JWT Token or Bearer Token"
+			}
+		}
+	},
+	"info": {
+		"title": "billions-backend",
+		"version": "1.0.0",
+		"license": {
+			"name": "ISC"
+		},
+		"contact": {}
+	},
+	"paths": {
+		"/public/v1/version": {
+			"get": {
+				"operationId": "GetVersion",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Return the supported native API version. This endpoint does not require an API key.",
+				"summary": "Get API version",
+				"tags": [
+					"Public API"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/public/v1/currencies": {
+			"get": {
+				"operationId": "Currencies",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/CurrencyInfo"
+									},
+									"type": "array"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "List available payment and settlement currencies, including network-specific internal tickers.",
+				"summary": "List supported currencies",
+				"tags": [
+					"Public API"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/public/v1/countries": {
+			"get": {
+				"operationId": "Countries",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/CountryInfo"
+									},
+									"type": "array"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "List country codes and English names from the bundled country directory.",
+				"summary": "List countries",
+				"tags": [
+					"Public API"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/public/v1/me": {
+			"get": {
+				"operationId": "Me",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicMerchantInfo"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Return the merchant associated with the supplied API key.",
+				"summary": "Get current merchant",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": []
+			}
+		},
+		"/public/v1/invoices/create": {
+			"post": {
+				"operationId": "CreateInvoice",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicCreatedInvoiceResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a hosted invoice. It starts pending, may move to processing during payment confirmation, then completed when paid. Compliance review may insert aml_check and resolve to completed or aml_block. An unpaid invoice may become expired or failed; a paid invoice may move through refund_processing to refunded. Provider or administrator actions can skip intermediate states. Status changes asynchronously; use GET or signed webhooks rather than redirect visits to confirm payment.",
+				"summary": "Create invoice",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PublicCreateInvoiceBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/public/v1/invoices/estimateFees": {
+			"post": {
+				"operationId": "EstimateFees",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CalculatedInvoiceFeeResult"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Estimate the payer amount, platform fee and merchant proceeds for an invoice without creating it. Amounts may change before actual payment.",
+				"summary": "Estimate invoice fees",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PublicEstimateInvoiceFeesBody"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/public/v1/invoices/{id}": {
+			"get": {
+				"operationId": "GetInvoice",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicCreatedInvoiceResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Invoice not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieve one invoice by UUID. Returns 404 when the invoice does not exist or belongs to another merchant. See createInvoice for status meanings.",
+				"summary": "Get invoice",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/public/v1/invoices/byOrder/{order_no}": {
+			"get": {
+				"operationId": "GetInvoicesByOrderId",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/PublicCreatedInvoiceResponse"
+									},
+									"type": "array"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieve all of this merchant's invoices matching the exact order reference. An order number is not necessarily unique.",
+				"summary": "Find invoices by order number",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "order_no",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/public/v1/withdrawals/{id}": {
+			"get": {
+				"operationId": "GetWithdrawal",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicWithdrawalRequest"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Withdrawal not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieve a withdrawal request by UUID, including current provider status, error and transaction ID.",
+				"summary": "Get withdrawal",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/public/v1/withdrawals": {
+			"get": {
+				"operationId": "ListWithdrawals",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicOperationListResponse_PublicWithdrawalRequest_"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "List this merchant's withdrawals. Filters include comma-separated statuses (created,pending,rejected,processing,success), inclusive creation-time and amount ranges, currency and search. page starts at 1; pageSize defaults to 20 and is capped at 200. Invalid statuses or amounts return 400.",
+				"summary": "List withdrawals",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"description": "One-based page number; values below 1 are normalized to 1.",
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "Number of results per page, default 20 and capped at 200.",
+						"in": "query",
+						"name": "pageSize",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "Comma-separated withdrawal statuses: created,pending,rejected,processing,success.",
+						"in": "query",
+						"name": "statuses",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Inclusive lower creation-time bound; ISO 8601 recommended.",
+						"in": "query",
+						"name": "dateFrom",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Inclusive upper creation-time bound; ISO 8601 recommended.",
+						"in": "query",
+						"name": "dateTo",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Inclusive minimum amount as a decimal string.",
+						"in": "query",
+						"name": "amountFrom",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Inclusive maximum amount as a decimal string.",
+						"in": "query",
+						"name": "amountTo",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Exact currency filter.",
+						"in": "query",
+						"name": "currency",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Free-text request search.",
+						"in": "query",
+						"name": "search",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Sort field; defaults to created_at.",
+						"in": "query",
+						"name": "sortBy",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"status",
+								"created_at",
+								"updated_at",
+								"amount",
+								"date"
+							]
+						}
+					},
+					{
+						"description": "Ascending or descending; defaults to desc.",
+						"in": "query",
+						"name": "sortDirection",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"asc",
+								"desc"
+							]
+						}
+					}
+				]
+			}
+		},
+		"/public/v1/refunds/{id}": {
+			"get": {
+				"operationId": "GetRefund",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicRefundRequest"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Refund not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieve a refund request by UUID, including current provider status, error and transaction ID.",
+				"summary": "Get refund",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/public/v1/refunds": {
+			"get": {
+				"operationId": "ListRefunds",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicOperationListResponse_PublicRefundRequest_"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "List this merchant's refunds. Filters include comma-separated statuses (new,processing,failed,declined,refunded), inclusive creation-time and amount ranges, currency and search. page starts at 1; pageSize defaults to 20 and is capped at 200. Invalid statuses or amounts return 400.",
+				"summary": "List refunds",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"description": "One-based page number; values below 1 are normalized to 1.",
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "Number of results per page, default 20 and capped at 200.",
+						"in": "query",
+						"name": "pageSize",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "Comma-separated refund statuses: new,processing,failed,declined,refunded.",
+						"in": "query",
+						"name": "statuses",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Inclusive lower creation-time bound; ISO 8601 recommended.",
+						"in": "query",
+						"name": "dateFrom",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Inclusive upper creation-time bound; ISO 8601 recommended.",
+						"in": "query",
+						"name": "dateTo",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Inclusive minimum amount as a decimal string.",
+						"in": "query",
+						"name": "amountFrom",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Inclusive maximum amount as a decimal string.",
+						"in": "query",
+						"name": "amountTo",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Exact currency filter.",
+						"in": "query",
+						"name": "currency",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Free-text request search.",
+						"in": "query",
+						"name": "search",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Sort field; defaults to created_at.",
+						"in": "query",
+						"name": "sortBy",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"status",
+								"created_at",
+								"updated_at",
+								"amount",
+								"date"
+							]
+						}
+					},
+					{
+						"description": "Ascending or descending; defaults to desc.",
+						"in": "query",
+						"name": "sortDirection",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"asc",
+								"desc"
+							]
+						}
+					}
+				]
+			}
+		},
+		"/public/v1/withdrawals/create": {
+			"post": {
+				"operationId": "CreateWithdrawal",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"request": {
+											"$ref": "#/components/schemas/PublicWithdrawalRequest"
+										}
+									},
+									"required": [
+										"request"
+									],
+									"type": "object"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Referenced resource not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "Conflicting request ID or operation state",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a withdrawal using a saved withdrawal method. Requires the API key plus x-billions-timestamp, x-billions-request-id and x-billions-request-signature (HMAC-SHA256 over RFC 8785 canonical JSON). The request ID is idempotent; conflicting reuse returns 409. Insufficient balance and invalid methods return 400.",
+				"summary": "Create withdrawal",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateMerchantWithdrawalInput"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/public/v1/refunds/refundCrypto": {
+			"post": {
+				"operationId": "RefundCrypto",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"request": {
+											"$ref": "#/components/schemas/PublicRefundRequest"
+										}
+									},
+									"required": [
+										"request"
+									],
+									"type": "object"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Referenced resource not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "Conflicting request ID or operation state",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Refund a completed crypto invoice and submit it to the payout service. With withdrawToSameAddress, exactly one incoming transaction is required; otherwise supply address. Requires signed mutation headers as for withdrawals. Conflicting request ID reuse returns 409.",
+				"summary": "Create crypto refund",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateMerchantCryptoRefundInput"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/public/v1/refunds/refundFiat": {
+			"post": {
+				"operationId": "RefundFiat",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"request": {
+											"$ref": "#/components/schemas/PublicRefundRequest"
+										}
+									},
+									"required": [
+										"request"
+									],
+									"type": "object"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid API key or signature",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Merchant not permitted to perform this operation",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Referenced resource not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "Conflicting request ID or operation state",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Rate limit exceeded",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicApiError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a fiat refund for a completed fiat invoice. Requires signed mutation headers as for withdrawals. Conflicting request ID reuse returns 409; invalid invoice or insufficient balance returns 400 or 404.",
+				"summary": "Create fiat refund",
+				"tags": [
+					"Public API"
+				],
+				"security": [
+					{
+						"ApiKeyAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateMerchantFiatRefundInput"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}

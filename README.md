@@ -21,14 +21,18 @@ The documentation is then available at `http://localhost:3000`.
 
 ## OpenAPI reference
 
-The **Live production schema** navigation group reads the production
-`/public/v1/swagger.json` URL at Mintlify publish time. When the backend
-changes without a docs commit, trigger a new Mintlify deployment so the
-generated endpoint page refreshes. The schema currently lacks per-field
-descriptions, so `api/create-invoice.mdx` supplies human-readable explanations
-that must be reviewed alongside backend changes. Keep the generated page in
-simple (non-interactive) mode until the OpenAPI `servers` value points to the
-correct absolute API host.
+The **Production API schema** navigation group uses the checked-in snapshot at
+`openapi/public-v1.json`. Refresh it before publishing API changes:
+
+```powershell
+./scripts/sync-openapi.ps1
+```
+
+The script downloads and validates the current production Swagger JSON. Commit
+the updated snapshot together with documentation changes. Mintlify generates
+the endpoint page from that snapshot; backend changes alone do not redeploy
+the docs. Keep the generated page in simple (non-interactive) mode while the
+OpenAPI `servers` value is relative rather than the absolute production host.
 
 `developer/ai-integration-checklist.mdx` is intentionally omitted from
 `docs.json` navigation. `seo.indexing: "all"` includes this page in the
