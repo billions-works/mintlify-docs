@@ -92,14 +92,7 @@
               "api/create-invoice",
               "api/statuses",
               "api/request-signing",
-              "api/withdrawals-and-refunds",
-              {
-                "group": "Production API schema",
-                "openapi": "openapi/public-v1.json",
-                "pages": [
-                  "POST /public/v1/invoices/create"
-                ]
-              }
+              "api/withdrawals-and-refunds"
             ]
           },
           {

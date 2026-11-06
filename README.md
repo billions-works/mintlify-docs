@@ -21,18 +21,19 @@ The documentation is then available at `http://localhost:3000`.
 
 ## OpenAPI reference
 
-The **Production API schema** navigation group uses the checked-in snapshot at
-`openapi/public-v1.json`. Refresh it before publishing API changes:
+The checked-in production schema snapshot is at `openapi/public-v1.json`.
+Refresh it before publishing API changes:
 
 ```powershell
 ./scripts/sync-openapi.ps1
 ```
 
 The script downloads and validates the current production Swagger JSON. Commit
-the updated snapshot together with documentation changes. Mintlify generates
-the endpoint page from that snapshot; backend changes alone do not redeploy
-the docs. Keep the generated page in simple (non-interactive) mode while the
-OpenAPI `servers` value is relative rather than the absolute production host.
+the updated snapshot together with documentation changes. The published API
+guide is maintained in MDX and links to the live Swagger UI and JSON.
+Mintlify's OpenAPI navigation integration failed to fetch both the remote URL
+and the checked-in snapshot in this project, so do not re-enable that group
+without verifying a successful deployment first.
 
 `developer/ai-integration-checklist.mdx` is intentionally omitted from
 `docs.json` navigation. `seo.indexing: "all"` includes this page in the
