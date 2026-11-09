@@ -1,15 +1,15 @@
 ---
-title: "Test in sandbox"
-description: "Check invoice creation and callbacks without accidentally using production."
+title: "Sandbox testing"
+description: "Complete a sandbox payment with the test API or Sepolia test ETH, then verify callbacks."
 icon: "flask"
 ---
 
 Sandbox and production have separate API hosts and credentials. For a custom
 integration, test against `https://api-sandbox.billions.works` before switching
-to production. This page describes **how to run the test**; it does not claim
-that a payment has been completed for your own integration.
+to production. You can finish a sandbox invoice either with the test API or
+by sending Sepolia test ETH to a TETH invoice. Neither option moves real funds.
 
-## Test your integration
+## Prepare your test
 
 1. [Sign in to the Billions app](https://app.billions.works), switch to
    **Sandbox**, and create a sandbox API key under **Settings → API**.
@@ -19,23 +19,89 @@ that a payment has been completed for your own integration.
 3. Make your callback endpoint reachable over HTTPS. Create an invoice with a
    unique `order_no`, a stable `idempotencyKey`, a small supported amount, and
    `callbackUrl`. Store the returned `id` and `expires_at`.
-4. Open the returned `invoice_url`. The app's Sandbox **Demo Shop** offers a
-   separate checkout smoke test, but its invoice is not a test of your own
-   callback handler.
-5. Complete the checkout using a sandbox-supported payment method available
-   to your account. Check the invoice again with
-   `GET /public/v1/invoices/{id}` and verify that your callback was received.
-   Fulfill only when that authenticated response returns `completed`.
-6. Repeat with duplicate callbacks, an abandoned checkout, expiration, and
-   an API timeout. Verify that no test can create duplicate fulfillment.
+4. Open the returned `invoice_url` to check the hosted checkout. The app's
+   Sandbox **Demo Shop** creates a separate invoice; it does not test your
+   callback endpoint.
+
+## Option 1: Mark an invoice as paid with the sandbox API
+
+Send the invoice `id` returned by the create endpoint to
+`POST /public/v1/invoices/mark-as-paid` on the **sandbox host**. Use the same
+merchant's sandbox API key. This simulates a successful payment, updates the
+invoice to `completed`, and queues the normal `invoice.paid` callback when the
+invoice has a `callbackUrl`. No blockchain transfer is required.
+In the TypeScript example, `invoice` is the result of your earlier create call;
+for cURL, set `BILLIONS_INVOICE_ID` to that response's `id`.
+
+<CodeGroup>
+
+```ts TypeScript
+const baseUrl = 'https://api-sandbox.billions.works';
+const response = await fetch(`${baseUrl}/public/v1/invoices/mark-as-paid`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.BILLIONS_API_KEY!,
+  },
+  body: JSON.stringify({ invoiceId: invoice.id }),
+});
+
+if (!response.ok) throw new Error(`Sandbox payment failed: ${response.status}`);
+const paidInvoice = await response.json();
+console.log(paidInvoice.status); // completed
+```
+
+```bash cURL
+curl --request POST \
+  --url 'https://api-sandbox.billions.works/public/v1/invoices/mark-as-paid' \
+  --header 'Content-Type: application/json' \
+  --header "x-api-key: $BILLIONS_API_KEY" \
+  --data "{\"invoiceId\":\"$BILLIONS_INVOICE_ID\"}"
+```
+
+</CodeGroup>
+
+The invoice must belong to the authenticated merchant, have a valid UUID,
+still be unexpired, and be in `pending` or `processing`. A repeated call, an
+expired invoice, or another status returns `409`. An invalid UUID returns
+`400`; an unknown invoice or a request outside sandbox returns `404`.
 
 <Warning>
-  The Public API does not document a universal "simulate paid" endpoint or a
-  guaranteed fake payment method. Opening a checkout page or using Demo Shop
-  alone does not prove that your integration completes a paid transaction. If
-  your account has no available sandbox payment path, ask Billions support for
-  a test method and record the end-to-end paid test as **not verified**.
+  This endpoint is for testing only. It is unavailable in production; do not
+  put it in a production payment or fulfillment flow.
 </Warning>
+
+## Option 2: Pay with Sepolia test ETH
+
+The sandbox currency `TETH` is **native test ETH on Ethereum Sepolia** (chain
+ID `11155111`, internal ticker `ETH_TEST5`). It has no ERC-20 contract address.
+To exercise a real testnet transfer:
+
+1. Create a sandbox invoice with `currency: "TETH"` and your `callbackUrl`.
+2. Open its `invoice_url` and use the displayed Sepolia payment address and
+   amount. Obtain Sepolia test ETH from a testnet faucet if needed.
+3. From a wallet connected to **Sepolia**, send the requested test ETH to that
+   address. Do not use Ethereum mainnet or send real ETH.
+4. Wait for network confirmation, then retrieve the invoice from the API and
+   check that your callback handler processed the update.
+
+Only TETH is listed as a Sepolia payment currency by the current
+[sandbox currencies endpoint](https://api-sandbox.billions.works/public/v1/currencies).
+Do not assume that other testnet ERC-20 tokens sent to the same address will
+pay this invoice.
+
+## Verify the end-to-end result
+
+With either option, retrieve `GET /public/v1/invoices/{id}` using the sandbox
+API key. Confirm the invoice ID, `order_no`, `amount`, and
+`settlement_currency` match your stored attempt, then require `completed`
+before fulfillment. If you set `callbackUrl`, verify that your endpoint
+received the notification and still performed its own authenticated API
+lookup. The simulated payment tests your callback and order-state logic; the
+Sepolia transfer additionally tests the on-chain payment path.
+
+Repeat with duplicate callbacks, an abandoned checkout, expiration, and an
+API timeout. Verify that no test can create duplicate fulfillment.
 
 See the [go-live checklist](/integration/go-live-checklist) before replacing
 the sandbox host and credentials with production values.

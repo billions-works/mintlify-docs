@@ -31,7 +31,7 @@ created with the API key secret. See [Request signing](/api/request-signing).
 | Authentication | Endpoints |
 | --- | --- |
 | None | Version, currencies, countries |
-| API key | Merchant profile, invoice creation, fee estimation, invoice retrieval |
+| API key | Merchant profile, invoice creation, fee estimation, invoice retrieval, sandbox payment simulation |
 | API key + signed request | Withdrawal creation, crypto refunds, fiat refunds |
 
 ## Endpoints
@@ -43,6 +43,7 @@ created with the API key secret. See [Request signing](/api/request-signing).
 | `GET` | `/public/v1/countries` | List supported countries |
 | `GET` | `/public/v1/me` | Return the merchant associated with the API key |
 | `POST` | `/public/v1/invoices/create` | Create an invoice |
+| `POST` | `/public/v1/invoices/mark-as-paid` | Simulate a paid invoice in sandbox only; see [Sandbox testing](/integration/sandbox-testing#option-1-mark-an-invoice-as-paid-with-the-sandbox-api) |
 | `POST` | `/public/v1/invoices/estimateFees` | Estimate invoice fees |
 | `GET` | `/public/v1/invoices/{id}` | Retrieve the current invoice by Billions ID |
 | `GET` | `/public/v1/invoices/byOrder/{order_no}` | Retrieve invoices by your order reference |
